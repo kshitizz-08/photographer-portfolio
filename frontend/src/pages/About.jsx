@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Camera, Award, Globe } from "lucide-react";
 import SafeImage from "../components/common/SafeImage";
-import { getPhotographerProfile } from "../services/api";
-import { PHOTOGRAPHER as FALLBACK_PHOTOGRAPHER, PHOTOGRAPHER_PORTRAIT, TESTIMONIALS } from "../data/sampleData";
+import { useProfile } from "../context/ProfileContext";
+import { PHOTOGRAPHER_PORTRAIT, TESTIMONIALS } from "../data/sampleData";
 
 const PHILOSOPHY = [
   {
@@ -24,15 +24,7 @@ const PHILOSOPHY = [
 ];
 
 export default function About() {
-  const [profile, setProfile] = useState(null);
-
-  useEffect(() => {
-    getPhotographerProfile()
-      .then((data) => setProfile(data))
-      .catch((err) => console.warn("[About] Using fallback profile:", err.message));
-  }, []);
-
-  const p = profile || FALLBACK_PHOTOGRAPHER;
+  const { profile: p } = useProfile();
   const portrait = p.profileImage?.imageUrl || p.profileImage?.src || PHOTOGRAPHER_PORTRAIT;
 
   const stats = p.stats && p.stats.length > 0 ? p.stats : [

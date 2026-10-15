@@ -3,10 +3,10 @@ import { Link } from "react-router-dom";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import PhotoGrid from "../components/ui/PhotoGrid";
 import SafeImage from "../components/common/SafeImage";
-import { getFeaturedPortfolioPhotos, getServices, getPhotographerProfile } from "../services/api";
+import { getFeaturedPortfolioPhotos, getServices } from "../services/api";
+import { useProfile } from "../context/ProfileContext";
 import { formatINRFrom } from "../utils/currency";
 import {
-  PHOTOGRAPHER as FALLBACK_PHOTOGRAPHER,
   HERO_IMAGE,
   PHOTOGRAPHER_PORTRAIT,
   FEATURED_PHOTOS as FALLBACK_FEATURED,
@@ -16,7 +16,7 @@ import {
 
 // ── Section: Hero ─────────────────────────────────────────────────────────────
 function Hero({ photographer }) {
-  const p = photographer || FALLBACK_PHOTOGRAPHER;
+  const p = photographer;
   return (
     <section className="relative h-screen min-h-[600px] flex items-end" aria-label="Hero">
       {/* Background image */}
@@ -311,9 +311,9 @@ function ContactCTA() {
 
 // ── Page: Home ────────────────────────────────────────────────────────────────
 export default function Home() {
+  const { profile } = useProfile();
   const [featuredPhotos, setFeaturedPhotos] = useState([]);
   const [services, setServices] = useState([]);
-  const [photographer, setPhotographer] = useState(null);
 
   useEffect(() => {
     getFeaturedPortfolioPhotos()
@@ -323,18 +323,14 @@ export default function Home() {
     getServices()
       .then((data) => setServices(data || []))
       .catch((err) => console.warn("[Home] Using fallback services:", err.message));
-
-    getPhotographerProfile()
-      .then((data) => setPhotographer(data))
-      .catch((err) => console.warn("[Home] Using fallback photographer:", err.message));
   }, []);
 
   return (
     <main>
-      <Hero photographer={photographer} />
+      <Hero photographer={profile} />
       <FeaturedWork photos={featuredPhotos} />
       <Categories />
-      <AboutSnippet photographer={photographer} />
+      <AboutSnippet photographer={profile} />
       <ServicesPreview services={services} />
       <Testimonials />
       <ContactCTA />

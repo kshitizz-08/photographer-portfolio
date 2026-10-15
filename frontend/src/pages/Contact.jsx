@@ -13,7 +13,7 @@ import {
   Clock,
   Sparkles,
 } from "lucide-react";
-import { PHOTOGRAPHER } from "../data/sampleData";
+import { useProfile } from "../context/ProfileContext";
 import { submitInquiry } from "../services/api";
 
 const SHOOT_TYPES = [
@@ -47,6 +47,7 @@ const EMPTY_FORM = {
 };
 
 export default function Contact() {
+  const { profile } = useProfile();
   const [searchParams] = useSearchParams();
   const [form, setForm] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState({});
@@ -214,13 +215,13 @@ export default function Contact() {
           <aside className="md:col-span-2 flex flex-col gap-10">
             <p className="text-[#6b6b6b] leading-relaxed">
               Every shoot is approached with care, curiosity, and artistic intention. Complete the inquiry
-              form with your date and vision, and Elena will reply within 48 hours with availability and
+              form with your date and vision, and {profile.name || "I"} will reply within 48 hours with availability and
               investment details.
             </p>
 
             <div className="flex flex-col gap-6">
               <a
-                href={`mailto:${PHOTOGRAPHER.email}`}
+                href={`mailto:${profile.email}`}
                 className="flex items-center gap-4 group"
               >
                 <div className="w-10 h-10 border border-[#E0DDD8] flex items-center justify-center group-hover:border-[#141414] transition-colors">
@@ -228,7 +229,7 @@ export default function Contact() {
                 </div>
                 <div>
                   <p className="text-xs tracking-widest uppercase text-[#6b6b6b] mb-0.5">Email</p>
-                  <p className="text-sm text-[#141414]">{PHOTOGRAPHER.email}</p>
+                  <p className="text-sm text-[#141414]">{profile.email}</p>
                 </div>
               </a>
 
@@ -238,7 +239,7 @@ export default function Contact() {
                 </div>
                 <div>
                   <p className="text-xs tracking-widest uppercase text-[#6b6b6b] mb-0.5">Phone</p>
-                  <p className="text-sm text-[#141414]">{PHOTOGRAPHER.phone}</p>
+                  <p className="text-sm text-[#141414]">{profile.phone}</p>
                 </div>
               </div>
 
@@ -248,7 +249,7 @@ export default function Contact() {
                 </div>
                 <div>
                   <p className="text-xs tracking-widest uppercase text-[#6b6b6b] mb-0.5">Based In</p>
-                  <p className="text-sm text-[#141414]">{PHOTOGRAPHER.location}</p>
+                  <p className="text-sm text-[#141414]">{profile.location}</p>
                 </div>
               </div>
             </div>
@@ -258,7 +259,7 @@ export default function Contact() {
               <p className="text-xs tracking-widest uppercase text-[#6b6b6b] mb-4">Follow Along</p>
               <div className="flex items-center gap-5">
                 <a
-                  href={PHOTOGRAPHER.instagram}
+                  href={profile.socialLinks?.instagram || profile.instagram || "#"}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Instagram"
@@ -267,7 +268,7 @@ export default function Contact() {
                   <Link2 size={16} /> Instagram
                 </a>
                 <a
-                  href={PHOTOGRAPHER.facebook}
+                  href={profile.socialLinks?.facebook || profile.facebook || "#"}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Facebook"

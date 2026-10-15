@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { NavLink, Link } from "react-router-dom";
 import { Menu, X } from "lucide-react";
-import { PHOTOGRAPHER } from "../../data/sampleData";
+import { useProfile } from "../../context/ProfileContext";
 
 const NAV_LINKS = [
   { to: "/",         label: "Home"      },
@@ -12,6 +12,7 @@ const NAV_LINKS = [
 ];
 
 export default function Navbar() {
+  const { profile } = useProfile();
   const [scrolled,    setScrolled]    = useState(false);
   const [mobileOpen,  setMobileOpen]  = useState(false);
 
@@ -49,7 +50,7 @@ export default function Navbar() {
             to="/"
             className="font-serif text-xl text-[#141414] tracking-wide hover:opacity-75 transition-opacity"
           >
-            {PHOTOGRAPHER.name}
+            {profile.name}
           </Link>
 
           {/* Desktop links */}

@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Share2, Link2, Mail, MapPin } from "lucide-react";
-import { PHOTOGRAPHER } from "../../data/sampleData";
+import { useProfile } from "../../context/ProfileContext";
 
 const NAV_LINKS = [
   { to: "/portfolio", label: "Portfolio" },
@@ -10,6 +10,7 @@ const NAV_LINKS = [
 ];
 
 export default function Footer() {
+  const { profile } = useProfile();
   const year = new Date().getFullYear();
 
   return (
@@ -20,15 +21,15 @@ export default function Footer() {
           {/* Brand column */}
           <div className="flex flex-col gap-4">
             <Link to="/" className="font-serif text-2xl text-[#FAF9F7] hover:opacity-75 transition-opacity">
-              {PHOTOGRAPHER.name}
+              {profile.name}
             </Link>
             <p className="text-sm text-white/50 leading-relaxed max-w-xs">
-              {PHOTOGRAPHER.shortBio}
+              {profile.shortBio || profile.bio}
             </p>
             {/* Social icons */}
             <div className="flex items-center gap-5 mt-2">
               <a
-                href={PHOTOGRAPHER.instagram}
+                href={profile.socialLinks?.instagram || profile.instagram || "#"}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"
@@ -37,7 +38,7 @@ export default function Footer() {
                 <Share2 size={18} />
               </a>
               <a
-                href={PHOTOGRAPHER.facebook}
+                href={profile.socialLinks?.facebook || profile.facebook || "#"}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Facebook"
@@ -66,15 +67,15 @@ export default function Footer() {
           <div className="flex flex-col gap-4">
             <h3 className="text-xs tracking-widest uppercase text-white/30 mb-1">Get in Touch</h3>
             <a
-              href={`mailto:${PHOTOGRAPHER.email}`}
+              href={`mailto:${profile.email}`}
               className="flex items-center gap-2 text-sm text-white/60 hover:text-[#FAF9F7] transition-colors"
             >
               <Mail size={15} className="shrink-0" />
-              {PHOTOGRAPHER.email}
+              {profile.email}
             </a>
             <span className="flex items-center gap-2 text-sm text-white/60">
               <MapPin size={15} className="shrink-0" />
-              {PHOTOGRAPHER.location}
+              {profile.location}
             </span>
             <Link
               to="/contact"
@@ -87,8 +88,8 @@ export default function Footer() {
 
         {/* Bottom bar */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-8 text-xs text-white/30">
-          <p>© {year} {PHOTOGRAPHER.name}. All rights reserved.</p>
-          <p>Photography • New York</p>
+          <p>© {year} {profile.name}. All rights reserved.</p>
+          <p>Photography • {profile.location || "Fine Art"}</p>
         </div>
       </div>
     </footer>

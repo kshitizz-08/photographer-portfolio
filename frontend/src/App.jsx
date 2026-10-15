@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-route
 import { useEffect } from "react";
 import ErrorBoundary      from "./components/common/ErrorBoundary";
 import { AuthProvider }   from "./context/AuthContext";
+import { ProfileProvider } from "./context/ProfileContext";
 import ProtectedRoute     from "./components/admin/ProtectedRoute";
 import AdminLayout        from "./components/admin/AdminLayout";
 import Navbar      from "./components/layout/Navbar";
@@ -55,36 +56,38 @@ export default function App() {
   return (
     <ErrorBoundary>
       <BrowserRouter>
-        <AuthProvider>
-          <Routes>
-            {/* Admin authentication */}
-            <Route path="/admin/login" element={<AdminLogin />} />
+        <ProfileProvider>
+          <AuthProvider>
+            <Routes>
+              {/* Admin authentication */}
+              <Route path="/admin/login" element={<AdminLogin />} />
 
-            {/* Protected admin dashboard & studio management routes */}
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute>
-                  <AdminLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<Navigate to="/admin/dashboard" replace />} />
-              <Route path="dashboard" element={<AdminDashboard />} />
-              <Route path="portfolio" element={<AdminPortfolio />} />
-              <Route path="galleries" element={<AdminGalleries />} />
-              <Route path="services" element={<AdminServices />} />
-              <Route path="inquiries" element={<AdminInquiries />} />
-              <Route path="settings" element={<AdminSettings />} />
-            </Route>
+              {/* Protected admin dashboard & studio management routes */}
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute>
+                    <AdminLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<Navigate to="/admin/dashboard" replace />} />
+                <Route path="dashboard" element={<AdminDashboard />} />
+                <Route path="portfolio" element={<AdminPortfolio />} />
+                <Route path="galleries" element={<AdminGalleries />} />
+                <Route path="services" element={<AdminServices />} />
+                <Route path="inquiries" element={<AdminInquiries />} />
+                <Route path="settings" element={<AdminSettings />} />
+              </Route>
 
-            {/* Index fallback */}
-            <Route path="/index.html" element={<Navigate to="/" replace />} />
+              {/* Index fallback */}
+              <Route path="/index.html" element={<Navigate to="/" replace />} />
 
-            {/* Public website */}
-            <Route path="/*" element={<PublicLayout />} />
-          </Routes>
-        </AuthProvider>
+              {/* Public website */}
+              <Route path="/*" element={<PublicLayout />} />
+            </Routes>
+          </AuthProvider>
+        </ProfileProvider>
       </BrowserRouter>
     </ErrorBoundary>
   );

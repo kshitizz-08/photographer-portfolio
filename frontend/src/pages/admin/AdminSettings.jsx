@@ -23,8 +23,10 @@ import {
 import ImageInputPreview from "../../components/admin/ImageInputPreview";
 import { validateImageUrl } from "../../utils/imageUrl";
 import { getAdminProfile, updateAdminProfile } from "../../services/api";
+import { useProfile } from "../../context/ProfileContext";
 
 export default function AdminSettings() {
+  const { updateCachedProfile } = useProfile();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -139,6 +141,11 @@ export default function AdminSettings() {
       const res = await updateAdminProfile(payload);
       if (res.success) {
         setSavedProfileImageUrl(formData.profileImageUrl.trim());
+        updateCachedProfile({
+          ...payload,
+          profileImage: payload.profileImage,
+          socialLinks: payload.socialLinks,
+        });
         showNotice("Studio settings and profile updated successfully in MongoDB!");
       }
     } catch (err) {
