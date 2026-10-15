@@ -43,6 +43,7 @@ function PublicLayout() {
         <Route path="/about"         element={<About />}      />
         <Route path="/contact"       element={<Contact />}    />
         <Route path="/gallery/:slug" element={<Gallery />}    />
+        <Route path="/index.html"    element={<Navigate to="/" replace />} />
         <Route path="*"              element={<NotFound />}   />
       </Routes>
       <Footer />
@@ -76,6 +77,9 @@ export default function App() {
               <Route path="inquiries" element={<AdminInquiries />} />
               <Route path="settings" element={<AdminSettings />} />
             </Route>
+
+            {/* Index fallback */}
+            <Route path="/index.html" element={<Navigate to="/" replace />} />
 
             {/* Public website */}
             <Route path="/*" element={<PublicLayout />} />
