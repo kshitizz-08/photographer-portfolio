@@ -78,6 +78,8 @@ app.use("/api", generalLimiter);
 
 // ── 7. API routes ─────────────────────────────────────────────────────────────
 app.use("/api", apiRouter);
+// Fallback in case frontend sends request without /api prefix
+app.use(apiRouter);
 
 // ── 8. Root ping (non-API) ────────────────────────────────────────────────────
 app.get("/", (req, res) => {

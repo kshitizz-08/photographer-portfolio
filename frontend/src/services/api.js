@@ -5,7 +5,14 @@
  * Uses import.meta.env.VITE_API_URL with a sensible local fallback.
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+function getApiBaseUrl() {
+  const envUrl = import.meta.env.VITE_API_URL?.trim();
+  if (!envUrl) return "http://localhost:5000/api";
+  const clean = envUrl.replace(/\/+$/, "");
+  return clean.endsWith("/api") ? clean : `${clean}/api`;
+}
+
+const API_BASE_URL = getApiBaseUrl();
 
 class ApiError extends Error {
   constructor(message, status, code = null, details = null) {
