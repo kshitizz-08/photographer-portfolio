@@ -323,10 +323,8 @@ export const ALL_PHOTOS = [
   },
 ];
 
-// ─── Featured Gallery (Home page — 6 curated picks) ──────────────────────────
-export const FEATURED_PHOTOS = ALL_PHOTOS.filter((p) =>
-  ["w1", "pw2", "pr1", "ev2", "fa1", "tr1"].includes(p.id)
-);
+// ─── Featured Gallery (Home page — curated picks) ─────────────────────────────
+export const FEATURED_PHOTOS = [];
 
 // ─── Services ────────────────────────────────────────────────────────────────
 export const SERVICES = [

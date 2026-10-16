@@ -9,7 +9,6 @@ import { formatINRFrom } from "../utils/currency";
 import {
   HERO_IMAGE,
   PHOTOGRAPHER_PORTRAIT,
-  FEATURED_PHOTOS as FALLBACK_FEATURED,
   SERVICES as FALLBACK_SERVICES,
   TESTIMONIALS,
 } from "../data/sampleData";
@@ -68,7 +67,7 @@ function Hero({ photographer }) {
 
 // ── Section: Featured Work ────────────────────────────────────────────────────
 function FeaturedWork({ photos }) {
-  const displayPhotos = photos && photos.length > 0 ? photos : FALLBACK_FEATURED;
+  const displayPhotos = photos || [];
   return (
     <section className="max-w-7xl mx-auto px-6 py-28" aria-labelledby="featured-heading">
       <div className="flex items-end justify-between mb-12 flex-wrap gap-4">
@@ -85,7 +84,22 @@ function FeaturedWork({ photos }) {
           View All <ArrowRight size={14} />
         </Link>
       </div>
-      <PhotoGrid photos={displayPhotos} />
+      {displayPhotos.length > 0 ? (
+        <PhotoGrid photos={displayPhotos} />
+      ) : (
+        <div className="py-16 text-center border border-dashed border-[#E0DDD8] my-4 px-6">
+          <p className="font-serif text-xl text-[#141414] mb-2">No Featured Photographs</p>
+          <p className="text-sm text-[#777] max-w-md mx-auto mb-6">
+            No photographs have been marked as featured yet.
+          </p>
+          <Link
+            to="/portfolio"
+            className="text-xs tracking-widest uppercase border-b border-[#141414] pb-1 text-[#141414] hover:text-[#C4A882] transition-colors"
+          >
+            Explore Full Portfolio
+          </Link>
+        </div>
+      )}
     </section>
   );
 }
@@ -318,7 +332,10 @@ export default function Home() {
   useEffect(() => {
     getFeaturedPortfolioPhotos()
       .then((data) => setFeaturedPhotos(data || []))
-      .catch((err) => console.warn("[Home] Using fallback featured photos:", err.message));
+      .catch((err) => {
+        console.warn("[Home] Could not load featured photos:", err.message);
+        setFeaturedPhotos([]);
+      });
 
     getServices()
       .then((data) => setServices(data || []))
