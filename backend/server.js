@@ -22,6 +22,8 @@ import cookieParser from "cookie-parser";
 import env           from "./config/env.js";
 import connectDB     from "./config/db.js";
 import apiRouter     from "./routes/index.js";
+import { getHealth, getPing } from "./controllers/healthController.js";
+import { initKeepAlive } from "./utils/keepAlive.js";
 import { generalLimiter } from "./middleware/rateLimiter.js";
 import { notFound }  from "./middleware/notFound.js";
 import { errorHandler } from "./middleware/errorHandler.js";
@@ -73,38 +75,67 @@ app.use(cookieParser());                      // parse HTTP-only auth cookies
 // ── 5. HTTP request logging ───────────────────────────────────────────────────
 app.use(morgan(env.NODE_ENV === "production" ? "combined" : "dev"));
 
-// ── 6. General rate limiter (all /api routes) ─────────────────────────────────
+// ── 6. Health & Keep-Alive endpoints (UptimeRobot, Render probes) ─────────────
+// Mounted at root BEFORE rate limiting so uptime monitors are never throttled
+app.route("/health").get(getHealth).head(getHealth);
+app.route("/ping").get(getPing).head(getPing);
+
+// ── 7. General rate limiter (all /api routes) ─────────────────────────────────
 app.use("/api", generalLimiter);
 
-// ── 7. API routes ─────────────────────────────────────────────────────────────
+// ── 8. API routes ─────────────────────────────────────────────────────────────
 app.use("/api", apiRouter);
 // Fallback in case frontend sends request without /api prefix
 app.use(apiRouter);
 
-// ── 8. Root ping (non-API) ────────────────────────────────────────────────────
-app.get("/", (req, res) => {
+// ── 9. Root ping (non-API) ────────────────────────────────────────────────────
+app.route("/").get((req, res) => {
+  res.set({
+    "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
+    "Pragma": "no-cache",
+    "Expires": "0",
+  });
   res.json({
-    message: "Photography Portfolio API",
-    docs:    "/api/health",
+    status:  "ok",
+    message: "Photography Portfolio API is online",
+    health:  "/health",
+    apiHealth: "/api/health",
+    ping:    "/ping",
     version: "1.0.0",
   });
+}).head((req, res) => {
+  res.set({
+    "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
+    "Pragma": "no-cache",
+    "Expires": "0",
+  });
+  res.status(200).end();
 });
 
-// ── 9. 404 handler ────────────────────────────────────────────────────────────
+// ── 10. 404 handler ───────────────────────────────────────────────────────────
 app.use(notFound);
 
-// ── 10. Centralized error handler ─────────────────────────────────────────────
+// ── 11. Centralized error handler ────────────────────────────────────────────
 app.use(errorHandler);
 
-// ── 11. Start server ──────────────────────────────────────────────────────────
+// ── 12. Start server ─────────────────────────────────────────────────────────
 async function start() {
-  await connectDB();
-
+  // Bind HTTP server immediately so Render detects port binding and can handle pings/health checks
   app.listen(env.PORT, "0.0.0.0", () => {
     console.log(`\n[server] Running in ${env.NODE_ENV} mode`);
     console.log(`[server] Listening on port ${env.PORT}`);
-    console.log(`[server] Health check → /api/health\n`);
+    console.log(`[server] Uptime health: http://localhost:${env.PORT}/health`);
+    console.log(`[server] API health:    http://localhost:${env.PORT}/api/health`);
+    console.log(`[server] Fast ping:     http://localhost:${env.PORT}/ping\n`);
   });
+
+  // Attempt database connection non-blocking so startup is never delayed.
+  // Data routes are protected by checkDb middleware which cleanly returns 503 while connecting.
+  connectDB().catch((err) => {
+    console.error(`[server] MongoDB initial connection error: ${err.message}`);
+  });
+
+  initKeepAlive();
 }
 
 start();

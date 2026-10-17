@@ -59,6 +59,9 @@ const env = {
   ADMIN_COOKIE_NAME: optionalEnv("ADMIN_COOKIE_NAME", "photographer_admin_session"),
   LOGIN_RATE_LIMIT_WINDOW_MS: parseIntEnv("LOGIN_RATE_LIMIT_WINDOW_MS", 15 * 60 * 1000), // 15 min
   LOGIN_RATE_LIMIT_MAX:       parseIntEnv("LOGIN_RATE_LIMIT_MAX", 5), // 5 attempts per window
+
+  // Optional Keep-alive self ping (supports Render's RENDER_EXTERNAL_URL automatically)
+  KEEP_ALIVE_URL: optionalEnv("KEEP_ALIVE_URL", optionalEnv("RENDER_EXTERNAL_URL", "")),
 };
 
 export default env;

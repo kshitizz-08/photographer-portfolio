@@ -58,10 +58,8 @@ export default async function connectDB() {
     console.warn("  2. Your IP address is whitelisted in MongoDB Atlas (Network Access -> Add IP -> Allow Anywhere or your current IP).");
     console.warn("  3. Your database username and password are valid.\n");
 
-    if (env.NODE_ENV === "production") {
-      process.exit(1);
-    }
-    // In development, do not crash the server so health check works
+    // Do not crash the server on initial DB error — checkDb middleware handles
+    // data routes (503) while health/ping checks remain 200 OK for uptime monitors
     return null;
   }
 }

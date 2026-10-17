@@ -22,12 +22,31 @@ const limiterDefaults = {
   },
 };
 
-/** General API rate limiter — relaxed in development */
+/** General API rate limiter — relaxed in development, skips health/uptime checks */
 export const generalLimiter = rateLimit({
   ...limiterDefaults,
   windowMs: env.RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000,
   max:      env.NODE_ENV === "development" ? 10000 : (env.RATE_LIMIT_MAX || 100),
-  skip:     (req) => env.NODE_ENV === "development" && (req.ip === "127.0.0.1" || req.ip === "::1" || req.ip === "::ffff:127.0.0.1"),
+  skip:     (req) => {
+    // Exempt uptime monitors and health checks from rate limiting (crucial for UptimeRobot)
+    const path = req.path || "";
+    const originalUrl = req.originalUrl || req.url || "";
+    if (
+      path === "/health" ||
+      path === "/ping" ||
+      originalUrl === "/health" ||
+      originalUrl === "/ping" ||
+      originalUrl === "/api/health" ||
+      originalUrl === "/api/ping" ||
+      originalUrl.startsWith("/health") ||
+      originalUrl.startsWith("/api/health") ||
+      originalUrl.startsWith("/ping") ||
+      originalUrl.startsWith("/api/ping")
+    ) {
+      return true;
+    }
+    return env.NODE_ENV === "development" && (req.ip === "127.0.0.1" || req.ip === "::1" || req.ip === "::ffff:127.0.0.1");
+  },
   message:  "Too many requests from this IP. Please try again later.",
 });
 
