@@ -65,7 +65,7 @@ export default function Contact() {
         ...prev,
         shootType: prefillType || prev.shootType,
         message: prefillRef
-          ? `Hi Elena, I saw your "${prefillRef}" gallery and would love to discuss a similar shoot!`
+          ? `Hi Jalindar, I saw your "${prefillRef}" gallery and would love to discuss a similar shoot!`
           : prev.message,
       }));
     }
@@ -259,22 +259,30 @@ export default function Contact() {
               <p className="text-xs tracking-widest uppercase text-[#6b6b6b] mb-4">Follow Along</p>
               <div className="flex items-center gap-5">
                 <a
-                  href={profile.socialLinks?.instagram || profile.instagram || "#"}
+                  href="https://www.instagram.com/jalindar_pale_photography"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Instagram"
-                  className="flex items-center gap-2 text-sm text-[#6b6b6b] hover:text-[#141414] transition-colors"
+                  className="flex items-center gap-2 text-sm text-[#6b6b6b] hover:text-[#E1306C] transition-colors group"
                 >
-                  <Link2 size={16} /> Instagram
+                  <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-[#E1306C]">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                    <circle cx="12" cy="12" r="4"/>
+                    <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" stroke="none"/>
+                  </svg>
+                  Instagram
                 </a>
                 <a
-                  href={profile.socialLinks?.facebook || profile.facebook || "#"}
+                  href="https://wa.me/918408031390"
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label="Facebook"
-                  className="flex items-center gap-2 text-sm text-[#6b6b6b] hover:text-[#141414] transition-colors"
+                  aria-label="WhatsApp"
+                  className="flex items-center gap-2 text-sm text-[#6b6b6b] hover:text-[#25D366] transition-colors group"
                 >
-                  <Link2 size={16} /> Facebook
+                  <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-[#25D366]">
+                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                  </svg>
+                  WhatsApp
                 </a>
               </div>
             </div>
@@ -301,7 +309,7 @@ export default function Contact() {
                 </h2>
 
                 <p className="text-[#6b6b6b] text-sm leading-relaxed mb-8">
-                  Your inquiry has been successfully recorded in our studio database. Elena personally
+                  Your inquiry has been successfully recorded in our studio database. Jalindar personally
                   reviews every shoot brief and will be in touch within 48 hours at{" "}
                   <strong className="text-[#141414] font-medium">{submittedInquiry.email}</strong>.
                 </p>

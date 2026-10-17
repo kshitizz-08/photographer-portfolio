@@ -195,7 +195,9 @@ function AboutSnippet({ photographer }) {
 
         {/* Text */}
         <div className="flex flex-col gap-6">
-          <p className="text-xs tracking-[0.3em] uppercase text-[#6b6b6b]">About the Photographer</p>
+          <p className="text-xs tracking-[0.3em] uppercase text-[#6b6b6b]">
+            {p.sectionLabel || "The Photographer"}
+          </p>
           <h2 id="about-snippet-heading" className="font-serif text-4xl md:text-5xl text-[#141414] leading-snug">
             {p.name}
           </h2>
@@ -203,6 +205,11 @@ function AboutSnippet({ photographer }) {
           <p className="text-[#6b6b6b] leading-relaxed text-base">
             {p.bio}
           </p>
+          {p.bioExtra && (
+            <p className="text-[#6b6b6b] leading-relaxed text-base">
+              {p.bioExtra}
+            </p>
+          )}
           <Link
             to="/about"
             className="self-start flex items-center gap-2 text-sm tracking-widest uppercase text-[#141414] border-b border-[#141414] pb-0.5 hover:border-[#C4A882] hover:text-[#C4A882] transition-colors"

@@ -57,7 +57,7 @@ const PhotographerSchema = new Schema(
     },
     profileImage: {
       imageUrl: { type: String, trim: true, default: "", alias: "src" },
-      altText:  { type: String, trim: true, default: "", alias: "alt" },
+      altText: { type: String, trim: true, default: "", alias: "alt" },
     },
     heroHeading: {
       type: String,
@@ -81,9 +81,9 @@ const PhotographerSchema = new Schema(
     },
     socialLinks: {
       instagram: { type: String, trim: true, default: "https://instagram.com" },
-      facebook:  { type: String, trim: true, default: "https://facebook.com" },
+      facebook: { type: String, trim: true, default: "https://facebook.com" },
       pinterest: { type: String, trim: true, default: "https://pinterest.com" },
-      twitter:   { type: String, trim: true, default: "https://twitter.com" },
+      twitter: { type: String, trim: true, default: "https://twitter.com" },
     },
     stats: [
       {

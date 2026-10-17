@@ -19,7 +19,7 @@ const PHILOSOPHY = [
   {
     icon: Globe,
     title: "Available Worldwide",
-    body: "Based in New York, I travel wherever the work takes me — from intimate Upstate elopements to European destination weddings.",
+    body: "Based in Khadambe, Rahuri, Ahilyanagar, I travel wherever stories take me — from destination weddings to intimate celebrations worldwide.",
   },
 ];
 
@@ -59,9 +59,11 @@ export default function About() {
             <p className="text-[#6b6b6b] leading-relaxed">
               {p.bio}
             </p>
-            <p className="text-[#6b6b6b] leading-relaxed">
-              My work has been featured in Vogue Living, The New York Times, and Kinfolk Magazine. I hold a BFA in Fine Art Photography from the Rhode Island School of Design.
-            </p>
+            {p.bioExtra && (
+              <p className="text-[#6b6b6b] leading-relaxed">
+                {p.bioExtra}
+              </p>
+            )}
             <Link
               to="/contact"
               className="self-start inline-flex items-center gap-2 bg-[#141414] text-[#FAF9F7] text-xs tracking-widest uppercase px-7 py-3.5 hover:bg-[#3a3a3a] transition-colors mt-2"

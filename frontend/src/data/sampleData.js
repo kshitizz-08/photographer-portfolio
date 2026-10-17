@@ -4,15 +4,18 @@
 // and keep the same object shape: { id, src, alt, category, location?, year? }
 
 export const PHOTOGRAPHER = {
-  name: "Elena Vasquez",
+  name: "Jalindar Pale",
   tagline: "Capturing Moments That Last Forever.",
-  bio: "Based in New York, I am a documentary-style photographer with over a decade of experience. I believe great photographs are quiet — they do not shout, they whisper. My work spans weddings, editorial portraits, and landscape photography across three continents.",
-  shortBio: "Documentary-style photographer based in New York, specializing in weddings, portraits, and landscapes.",
-  location: "New York, USA",
-  email: "hello@elenavasquez.com",
-  phone: "+1 (212) 555-0198",
-  instagram: "https://instagram.com",
-  facebook:  "https://facebook.com",
+  sectionLabel: "THE PHOTOGRAPHER",
+  headline: "Every Story, Beautifully Framed",
+  bio: "I believe every moment has a story worth telling. From the intimacy of weddings and the energy of celebrations to the individuality of portraits and the beauty of the world around us, my photography is driven by a passion for capturing life in all its forms.",
+  bioExtra: "My approach blends creativity, natural light, and genuine emotion to create photographs that feel timeless, authentic, and personal. Whatever the subject, my goal remains the same — to turn fleeting moments into lasting memories.",
+  shortBio: "Photographer passionate about capturing life in all its forms — weddings, celebrations, portraits, and the beauty of the world around us.",
+  location: "Khadambe, Rahuri, Ahilyanagar. 413704",
+  email: "jalindarpalephotography@gmail.com",
+  phone: "+91 84080 31390",
+  instagram: "https://www.instagram.com/jalindar_pale_photography?utm_source=ig_web_button_share_sheet&exln=ZDNlZDc0MzIxNw==",
+  facebook: "https://facebook.com",
   pinterest: "https://pinterest.com",
 };
 
@@ -374,23 +377,23 @@ export const SERVICES = [
 export const TESTIMONIALS = [
   {
     id: "t1",
-    name: "Sarah & James",
+    name: "Kshitij Kalhapure",
     role: "Wedding clients, 2024",
     quote:
-      "Elena has a rare ability to be completely invisible during the day while capturing every meaningful moment. Our photographs are a treasure we'll pass on for generations.",
+      "The most beautiful thing about our photographs is how they bring us back to the feelings of that day. Every glance, every tear, and every little moment was captured with so much love. These are memories we'll cherish forever.",
   },
   {
     id: "t2",
-    name: "Marcus Reid",
-    role: "Executive portrait, 2024",
+    name: "Bhushan Pawar",
+    role: "Wedding clients, 2025",
     quote:
-      "I was nervous about my headshots but Elena put me completely at ease. The results were beyond anything I imagined — natural, confident, and professional.",
+      "Somehow, they captured not only how our wedding looked, but exactly how it felt. Every photograph is filled with warmth, emotion, and the kind of beauty that only grows more precious with time.",
   },
   {
     id: "t3",
     name: "Vogue Living",
     role: "Editorial client, 2023",
     quote:
-      "Elena's editorial eye is extraordinary. She delivered a series of images that exceeded our creative brief and felt genuinely timeless.",
+      "Jalindar's editorial eye is extraordinary. He delivered a series of images that exceeded our creative brief and felt genuinely timeless.",
   },
 ];
