@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight, Camera, Award, Globe } from "lucide-react";
 import SafeImage from "../components/common/SafeImage";
 import { useProfile } from "../context/ProfileContext";
-import { PHOTOGRAPHER_PORTRAIT, TESTIMONIALS } from "../data/sampleData";
+import { PHOTOGRAPHER_PORTRAIT } from "../data/sampleData";
 
 const PHILOSOPHY = [
   {
@@ -112,14 +112,14 @@ export default function About() {
         </div>
       </section>
 
-      {/* ── Client Quote ── */}
-      <section className="max-w-4xl mx-auto px-6 text-center" aria-label="Featured testimonial">
+      {/* ── Inspiring Quote ── */}
+      <section className="max-w-4xl mx-auto px-6 text-center" aria-label="Photography quote">
         <div className="w-12 h-px bg-[#C4A882] mx-auto mb-10" />
         <blockquote className="font-serif text-2xl md:text-3xl text-[#141414] italic leading-relaxed mb-6">
-          &ldquo;{TESTIMONIALS[0].quote}&rdquo;
+          &ldquo;Photography is a way of feeling, of touching, of loving. What you have caught on film is captured forever... it remembers little things, long after you have forgotten everything.&rdquo;
         </blockquote>
         <p className="text-xs tracking-widest uppercase text-[#6b6b6b]">
-          {TESTIMONIALS[0].name} — {TESTIMONIALS[0].role}
+          Aaron Siskind
         </p>
       </section>
     </main>
