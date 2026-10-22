@@ -18,7 +18,7 @@ export async function getGalleries(req, res, next) {
 
     const galleries = await Gallery.find(filter)
       .sort({ sortOrder: 1, createdAt: -1 })
-      .select("-photos -images")
+      .select("-photos -images -__v")
       .lean();
 
     res.json({ success: true, galleries, total: galleries.length });
@@ -34,7 +34,12 @@ export async function getGalleryBySlug(req, res, next) {
       slug: req.params.slug,
       isPublished: { $ne: false },
     })
-      .populate("images")
+      .select("-__v")
+      .populate({
+        path: "images",
+        match: { isPublished: { $ne: false } },
+        select: "imageUrl altText aspect location year title",
+      })
       .lean();
 
     if (!gallery) {

@@ -26,6 +26,7 @@ import photographerRoutes from "./photographerRoutes.js";
 import inquiryRoutes      from "./inquiryRoutes.js";
 import adminRoutes        from "./adminRoutes.js";
 import checkDb            from "../middleware/checkDb.js";
+import { requestTimeout } from "../middleware/timeout.js";
 
 import { getPing }        from "../controllers/healthController.js";
 
@@ -34,6 +35,9 @@ const router = Router();
 // Health check & ping do not require active DB (for monitoring and keep-alive)
 router.use("/health", healthRoutes);
 router.route("/ping").get(getPing).head(getPing);
+
+// Enforce request timeout across data routes (15 seconds)
+router.use(requestTimeout(15000));
 
 // Data-dependent public routes
 router.use("/portfolio",    checkDb, photoRoutes);

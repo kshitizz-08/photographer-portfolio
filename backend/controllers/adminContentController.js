@@ -60,6 +60,7 @@ export async function getDashboardStats(req, res, next) {
       newInquiries,
       recentInquiries,
       recentPhotos,
+      categoryCounts,
     ] = await Promise.all([
       PortfolioImage.countDocuments(),
       PortfolioImage.countDocuments({ isPublished: true }),
@@ -71,12 +72,10 @@ export async function getDashboardStats(req, res, next) {
       Inquiry.countDocuments(),
       Inquiry.countDocuments({ status: "new" }),
       Inquiry.find().select("+adminNotes").sort({ createdAt: -1 }).limit(5).lean(),
-      PortfolioImage.find().sort({ createdAt: -1 }).limit(6).lean(),
-    ]);
-
-    // Categories breakdown
-    const categoryCounts = await PortfolioImage.aggregate([
-      { $group: { _id: "$category", count: { $sum: 1 } } },
+      PortfolioImage.find().select("title imageUrl aspect category isPublished isFeatured createdAt").sort({ createdAt: -1 }).limit(6).lean(),
+      PortfolioImage.aggregate([
+        { $group: { _id: "$category", count: { $sum: 1 } } },
+      ]),
     ]);
 
     res.json({
@@ -114,7 +113,7 @@ export async function getDashboardStats(req, res, next) {
 // ─────────────────────────────────────────────────────────────────────────────
 export async function getAdminPhotos(req, res, next) {
   try {
-    const { category, search, featured, published } = req.query;
+    const { category, search, featured, published, page, limit } = req.query;
     const filter = {};
 
     if (category && category !== "All") {
@@ -130,9 +129,20 @@ export async function getAdminPhotos(req, res, next) {
       filter.title = { $regex: search.trim(), $options: "i" };
     }
 
-    const photos = await PortfolioImage.find(filter)
-      .sort({ sortOrder: 1, createdAt: -1 })
-      .lean();
+    const pageNum = page ? Math.max(1, parseInt(page, 10) || 1) : null;
+    const limitNum = limit ? Math.min(200, Math.max(1, parseInt(limit, 10) || 50)) : null;
+
+    let query = PortfolioImage.find(filter)
+      .sort({ sortOrder: 1, createdAt: -1 });
+
+    if (pageNum && limitNum) {
+      query = query.skip((pageNum - 1) * limitNum).limit(limitNum);
+    }
+
+    const [photos, total] = await Promise.all([
+      query.lean(),
+      PortfolioImage.countDocuments(filter),
+    ]);
 
     const normalized = photos.map((p) => ({
       ...p,
@@ -143,7 +153,13 @@ export async function getAdminPhotos(req, res, next) {
       order: p.sortOrder ?? p.order,
     }));
 
-    res.json({ success: true, photos: normalized, total: normalized.length });
+    res.json({
+      success: true,
+      photos: normalized,
+      total,
+      page: pageNum || 1,
+      pages: limitNum ? Math.ceil(total / limitNum) : 1,
+    });
   } catch (err) {
     next(err);
   }
@@ -287,18 +303,18 @@ export async function deleteAdminPhoto(req, res, next) {
 export async function togglePublishPhoto(req, res, next) {
   try {
     const { id } = req.params;
-    const photo = await PortfolioImage.findById(id);
+    const photo = await PortfolioImage.findById(id).select("isPublished");
     if (!photo) {
       return res.status(404).json({ success: false, message: "Photo not found." });
     }
 
-    photo.isPublished = !photo.isPublished;
-    await photo.save();
+    const newStatus = !photo.isPublished;
+    await PortfolioImage.updateOne({ _id: id }, { $set: { isPublished: newStatus } });
 
     res.json({
       success: true,
-      message: `Photograph ${photo.isPublished ? "published" : "unpublished"}.`,
-      isPublished: photo.isPublished,
+      message: `Photograph ${newStatus ? "published" : "unpublished"}.`,
+      isPublished: newStatus,
     });
   } catch (err) {
     next(err);
@@ -308,18 +324,18 @@ export async function togglePublishPhoto(req, res, next) {
 export async function toggleFeaturedPhoto(req, res, next) {
   try {
     const { id } = req.params;
-    const photo = await PortfolioImage.findById(id);
+    const photo = await PortfolioImage.findById(id).select("isFeatured");
     if (!photo) {
       return res.status(404).json({ success: false, message: "Photo not found." });
     }
 
-    photo.isFeatured = !photo.isFeatured;
-    await photo.save();
+    const newStatus = !photo.isFeatured;
+    await PortfolioImage.updateOne({ _id: id }, { $set: { isFeatured: newStatus } });
 
     res.json({
       success: true,
-      message: `Photograph ${photo.isFeatured ? "marked as featured" : "removed from featured"}.`,
-      isFeatured: photo.isFeatured,
+      message: `Photograph ${newStatus ? "marked as featured" : "removed from featured"}.`,
+      isFeatured: newStatus,
     });
   } catch (err) {
     next(err);
@@ -333,10 +349,14 @@ export async function reorderPhotos(req, res, next) {
       return res.status(400).json({ success: false, message: "photoIds array is required." });
     }
 
-    const updates = photoIds.map((id, index) =>
-      PortfolioImage.findByIdAndUpdate(id, { sortOrder: index })
-    );
-    await Promise.all(updates);
+    const bulkOps = photoIds.map((id, index) => ({
+      updateOne: {
+        filter: { _id: id },
+        update: { $set: { sortOrder: index } },
+      },
+    }));
+
+    await PortfolioImage.bulkWrite(bulkOps, { ordered: false });
 
     res.json({ success: true, message: "Photos reordered successfully." });
   } catch (err) {
@@ -349,12 +369,27 @@ export async function reorderPhotos(req, res, next) {
 // ─────────────────────────────────────────────────────────────────────────────
 export async function getAdminGalleries(req, res, next) {
   try {
-    const galleries = await Gallery.find()
-      .sort({ sortOrder: 1, createdAt: -1 })
-      .populate("images")
-      .lean();
+    const { page, limit } = req.query;
+    const pageNum = page ? Math.max(1, parseInt(page, 10) || 1) : null;
+    const limitNum = limit ? Math.min(200, Math.max(1, parseInt(limit, 10) || 50)) : null;
 
-    res.json({ success: true, galleries, total: galleries.length });
+    let query = Gallery.find().sort({ sortOrder: 1, createdAt: -1 });
+    if (pageNum && limitNum) {
+      query = query.skip((pageNum - 1) * limitNum).limit(limitNum);
+    }
+
+    const [galleries, total] = await Promise.all([
+      query.lean(),
+      Gallery.countDocuments(),
+    ]);
+
+    res.json({
+      success: true,
+      galleries,
+      total,
+      page: pageNum || 1,
+      pages: limitNum ? Math.ceil(total / limitNum) : 1,
+    });
   } catch (err) {
     next(err);
   }
@@ -517,18 +552,18 @@ export async function deleteAdminGallery(req, res, next) {
 export async function togglePublishGallery(req, res, next) {
   try {
     const { id } = req.params;
-    const gallery = await Gallery.findById(id);
+    const gallery = await Gallery.findById(id).select("isPublished");
     if (!gallery) {
       return res.status(404).json({ success: false, message: "Gallery not found." });
     }
 
-    gallery.isPublished = !gallery.isPublished;
-    await gallery.save();
+    const newStatus = !gallery.isPublished;
+    await Gallery.updateOne({ _id: id }, { $set: { isPublished: newStatus } });
 
     res.json({
       success: true,
-      message: `Gallery ${gallery.isPublished ? "published" : "unpublished"}.`,
-      isPublished: gallery.isPublished,
+      message: `Gallery ${newStatus ? "published" : "unpublished"}.`,
+      isPublished: newStatus,
     });
   } catch (err) {
     next(err);
@@ -685,18 +720,18 @@ export async function deleteAdminService(req, res, next) {
 export async function togglePublishService(req, res, next) {
   try {
     const { id } = req.params;
-    const service = await Service.findById(id);
+    const service = await Service.findById(id).select("isPublished");
     if (!service) {
       return res.status(404).json({ success: false, message: "Service not found." });
     }
 
-    service.isPublished = !service.isPublished;
-    await service.save();
+    const newStatus = !service.isPublished;
+    await Service.updateOne({ _id: id }, { $set: { isPublished: newStatus } });
 
     res.json({
       success: true,
-      message: `Service ${service.isPublished ? "published" : "unpublished"}.`,
-      isPublished: service.isPublished,
+      message: `Service ${newStatus ? "published" : "unpublished"}.`,
+      isPublished: newStatus,
     });
   } catch (err) {
     next(err);
@@ -708,7 +743,7 @@ export async function togglePublishService(req, res, next) {
 // ─────────────────────────────────────────────────────────────────────────────
 export async function getAdminInquiries(req, res, next) {
   try {
-    const { status, search } = req.query;
+    const { status, search, page, limit } = req.query;
     const filter = {};
 
     if (status && status !== "all") {
@@ -728,13 +763,29 @@ export async function getAdminInquiries(req, res, next) {
       ];
     }
 
-    // Explicitly select +adminNotes and use .lean() to preserve notes
-    const inquiries = await Inquiry.find(filter)
-      .select("+adminNotes")
-      .sort({ createdAt: -1 })
-      .lean();
+    const pageNum = page ? Math.max(1, parseInt(page, 10) || 1) : null;
+    const limitNum = limit ? Math.min(200, Math.max(1, parseInt(limit, 10) || 50)) : null;
 
-    res.json({ success: true, inquiries, total: inquiries.length });
+    let query = Inquiry.find(filter)
+      .select("+adminNotes")
+      .sort({ createdAt: -1 });
+
+    if (pageNum && limitNum) {
+      query = query.skip((pageNum - 1) * limitNum).limit(limitNum);
+    }
+
+    const [inquiries, total] = await Promise.all([
+      query.lean(),
+      Inquiry.countDocuments(filter),
+    ]);
+
+    res.json({
+      success: true,
+      inquiries,
+      total,
+      page: pageNum || 1,
+      pages: limitNum ? Math.ceil(total / limitNum) : 1,
+    });
   } catch (err) {
     next(err);
   }

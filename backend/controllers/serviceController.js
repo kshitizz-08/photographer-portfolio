@@ -13,6 +13,7 @@ import Service from "../models/Service.js";
 export async function getServices(req, res, next) {
   try {
     const services = await Service.find({ isPublished: true })
+      .select("-__v")
       .sort({ sortOrder: 1, createdAt: 1 })
       .lean();
 
@@ -32,7 +33,9 @@ export async function getServiceBySlug(req, res, next) {
     const service = await Service.findOne({
       slug: req.params.slug,
       isPublished: true,
-    }).lean();
+    })
+      .select("-__v")
+      .lean();
 
     if (!service) {
       return res.status(404).json({

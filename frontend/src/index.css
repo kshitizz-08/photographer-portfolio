@@ -42,3 +42,17 @@ img {
 /* Utility helpers */
 .font-serif { font-family: var(--font-serif); }
 .font-sans  { font-family: var(--font-sans); }
+
+/**
+ * Accessibility: respect the OS-level "reduce motion" preference.
+ * All CSS animations and transitions are disabled or shortened so users
+ * who are sensitive to motion don't experience discomfort.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,41 +1,76 @@
 import React, { useState, useEffect } from "react";
-import { resolveImageUrl, FALLBACK_IMAGE_PLACEHOLDER } from "../../utils/imageUrl";
+import {
+  resolveImageUrl,
+  getResponsiveSrcSet,
+  extractGoogleDriveFileId,
+  FALLBACK_IMAGE_PLACEHOLDER,
+} from "../../utils/imageUrl";
 
 /**
- * SafeImage — Reusable resilient image component.
+ * SafeImage — High-performance resilient responsive image component.
  *
- * - Automatically resolves universal image URLs (Google Drive, Dropbox, Imgur, direct URLs).
- * - Appends referrerPolicy="no-referrer" to prevent hotlink-protection blocks.
- * - Manages loading and error states smoothly without breaking page layouts.
- * - Displays a fallback placeholder if the URL cannot be loaded.
+ * Capabilities:
+ * - Automatically optimizes image resolution and format (WebP/AVIF via CDN auto-format).
+ * - Generates responsive `srcSet` and `sizes` for supported CDNs (Unsplash, Google Drive, Cloudinary).
+ * - Bypasses slow 302 redirects for Google Drive images by targeting direct lh3 endpoints.
+ * - Prevents layout shifts (CLS) by maintaining container dimensions and aspect ratio.
+ * - Applies loading="lazy" for below-the-fold images and eager/high priority for hero banners.
+ * - Displays graceful loading shimmer skeleton and fallback on broken images.
  */
 export default function SafeImage({
   src,
   alt = "",
   className = "",
+  containerClassName = "",
   fallbackSrc = null,
   showErrorFallback = true,
-  loading = "lazy",
-  fetchPriority = "auto",
+  loading,
+  fetchPriority,
+  decoding = "async",
+  hero = false,
+  targetWidth,
+  widths,
+  sizes,
+  aspectRatio,
+  width,
+  height,
   onLoad,
   onError,
+  style,
   ...props
 }) {
-  const resolvedSrc = resolveImageUrl(src);
-  const [currentSrc, setCurrentSrc] = useState(resolvedSrc);
+  // Determine appropriate loading and priority defaults based on `hero` flag
+  const isEager = hero || loading === "eager" || fetchPriority === "high";
+  const effectiveLoading = isEager ? "eager" : (loading || "lazy");
+  const effectiveFetchPriority = fetchPriority || (hero ? "high" : "auto");
+
+  // Determine target width and srcset widths
+  const effectiveTargetWidth = targetWidth || (hero ? 1920 : 800);
+  const effectiveWidths = widths || (hero ? [640, 1080, 1920, 2560] : [400, 800, 1200]);
+  const effectiveSizes = sizes || (hero ? "100vw" : "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw");
+
+  const primarySrc = resolveImageUrl(src, { width: effectiveTargetWidth });
+  const srcSetString = getResponsiveSrcSet(src, effectiveWidths);
+
+  const [currentSrc, setCurrentSrc] = useState(primarySrc);
+  const [currentSrcSet, setCurrentSrcSet] = useState(srcSetString);
   const [status, setStatus] = useState("loading"); // "loading" | "loaded" | "error"
   const [triedFallback, setTriedFallback] = useState(false);
 
   useEffect(() => {
-    const nextSrc = resolveImageUrl(src);
+    const nextSrc = resolveImageUrl(src, { width: effectiveTargetWidth });
+    const nextSrcSet = getResponsiveSrcSet(src, effectiveWidths);
+
     setCurrentSrc(nextSrc);
+    setCurrentSrcSet(nextSrcSet);
+
     if (!nextSrc) {
       setStatus("error");
     } else {
       setStatus("loading");
     }
     setTriedFallback(false);
-  }, [src]);
+  }, [src, effectiveTargetWidth]);
 
   const handleLoad = (e) => {
     setStatus("loaded");
@@ -43,9 +78,25 @@ export default function SafeImage({
   };
 
   const handleError = (e) => {
+    // If direct Googleusercontent fails, attempt Google Drive thumbnail endpoint as secondary fallback
+    try {
+      const parsed = new URL(src);
+      const driveId = extractGoogleDriveFileId(parsed);
+      if (driveId && !triedFallback) {
+        setTriedFallback(true);
+        setCurrentSrcSet("");
+        setCurrentSrc(`https://drive.google.com/thumbnail?id=${driveId}&sz=w800`);
+        setStatus("loading");
+        return;
+      }
+    } catch {
+      // Continue to standard fallback
+    }
+
     if (fallbackSrc && !triedFallback && fallbackSrc !== currentSrc) {
       setTriedFallback(true);
-      setCurrentSrc(resolveImageUrl(fallbackSrc));
+      setCurrentSrcSet("");
+      setCurrentSrc(resolveImageUrl(fallbackSrc, { width: effectiveTargetWidth }));
       setStatus("loading");
     } else {
       setStatus("error");
@@ -53,18 +104,25 @@ export default function SafeImage({
     }
   };
 
+  const containerStyle = {
+    ...(aspectRatio ? { aspectRatio } : {}),
+    ...(style || {}),
+  };
+
   if (status === "error" && showErrorFallback) {
     return (
       <div
-        className={`flex flex-col items-center justify-center bg-[#1c1c1c] text-[#888888] select-none p-4 text-center ${className}`}
+        className={`flex flex-col items-center justify-center bg-[#1c1c1c] text-[#888888] select-none p-4 text-center overflow-hidden ${className} ${containerClassName}`}
+        style={containerStyle}
         role="img"
         aria-label={alt || "Image unavailable"}
       >
         <svg
-          className="w-8 h-8 mb-1.5 text-[#C4A882]/40"
+          className="w-7 h-7 mb-1.5 text-[#C4A882]/40"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
+          aria-hidden="true"
         >
           <path
             strokeLinecap="round"
@@ -74,7 +132,7 @@ export default function SafeImage({
           />
         </svg>
         <span className="text-[10px] tracking-wider uppercase text-[#888888]/80 font-sans">
-          Image not available
+          Photograph unavailable
         </span>
       </div>
     );
@@ -83,14 +141,22 @@ export default function SafeImage({
   return (
     <img
       src={currentSrc || FALLBACK_IMAGE_PLACEHOLDER}
+      srcSet={currentSrcSet || undefined}
+      sizes={currentSrcSet ? effectiveSizes : undefined}
       alt={alt}
-      loading={loading}
-      fetchPriority={fetchPriority}
+      width={width}
+      height={height}
+      loading={effectiveLoading}
+      fetchPriority={effectiveFetchPriority}
+      decoding={decoding}
       referrerPolicy="no-referrer"
       onLoad={handleLoad}
       onError={handleError}
+      style={containerStyle}
       className={`${className} ${
-        status === "loading" ? "opacity-0" : "opacity-100"
+        status === "loading"
+          ? "opacity-0 bg-[#E8E5DF]/50"
+          : "opacity-100"
       } transition-opacity duration-300`}
       {...props}
     />

@@ -13,8 +13,15 @@ import PortfolioImage from "../models/PortfolioImage.js";
 // ── Helper: standard paginated query ─────────────────────────────────────────
 async function paginatedFind(filter, { page = 1, limit = 50, sort = { sortOrder: 1, createdAt: -1 } }) {
   const skip = (page - 1) * limit;
-  const total = await PortfolioImage.countDocuments(filter);
-  const photos = await PortfolioImage.find(filter).sort(sort).skip(skip).limit(limit).lean();
+  const [total, photos] = await Promise.all([
+    PortfolioImage.countDocuments(filter),
+    PortfolioImage.find(filter)
+      .select("title description imageUrl altText category aspect location year isFeatured isPublished sortOrder createdAt")
+      .sort(sort)
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+  ]);
 
   // Normalize fields so clients receive both src and imageUrl, alt and altText
   const normalized = photos.map((p) => ({
@@ -56,6 +63,7 @@ export async function getFeaturedPhotos(req, res, next) {
       isPublished: { $ne: false },
       isFeatured: true,
     })
+      .select("title description imageUrl altText category aspect location year isFeatured isPublished sortOrder createdAt")
       .sort({ sortOrder: 1, createdAt: -1 })
       .limit(12)
       .lean();
@@ -81,7 +89,9 @@ export async function getPhotoById(req, res, next) {
     const photo = await PortfolioImage.findOne({
       _id: req.params.id,
       isPublished: { $ne: false },
-    }).lean();
+    })
+      .select("-__v")
+      .lean();
 
     if (!photo) {
       return res.status(404).json({ success: false, message: "Photo not found." });

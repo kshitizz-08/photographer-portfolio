@@ -46,9 +46,18 @@ export default async function connectDB() {
     console.warn("[MongoDB] Connection disconnected.");
   });
 
+  mongoose.connection.on("reconnected", () => {
+    console.log("[MongoDB] Connection re-established.");
+  });
+
   try {
     const conn = await mongoose.connect(uri, {
+      maxPoolSize: 10,
+      minPoolSize: 2,
       serverSelectionTimeoutMS: 5000,
+      connectTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
+      heartbeatFrequencyMS: 10000,
     });
     return conn;
   } catch (err) {

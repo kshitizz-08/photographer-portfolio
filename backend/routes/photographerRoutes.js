@@ -6,10 +6,11 @@
 
 import { Router } from "express";
 import { getPhotographerProfile } from "../controllers/photographerController.js";
+import { mediumCache } from "../middleware/cacheControl.js";
 
 const router = Router();
 
 // GET /api/photographer
-router.get("/", getPhotographerProfile);
+router.get("/", mediumCache, getPhotographerProfile);
 
 export default router;

@@ -14,7 +14,7 @@ export async function getPhotographerProfile(req, res, next) {
     // Queries without password and private notes (both are already select: false)
     const profile = await Photographer.findOne()
       .sort({ updatedAt: -1 })
-      .select("-password -privateNotes")
+      .select("-password -privateNotes -__v")
       .lean();
 
     if (!profile) {

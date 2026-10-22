@@ -12,10 +12,11 @@ import {
 } from "../controllers/galleryController.js";
 import { runValidation } from "../middleware/validate.js";
 import { slugParamValidator } from "../utils/validators.js";
+import { shortCache } from "../middleware/cacheControl.js";
 
 const router = Router();
 
-router.get("/",       getGalleries);
-router.get("/:slug",  slugParamValidator, runValidation, getGalleryBySlug);
+router.get("/",       shortCache, getGalleries);
+router.get("/:slug",  shortCache, slugParamValidator, runValidation, getGalleryBySlug);
 
 export default router;

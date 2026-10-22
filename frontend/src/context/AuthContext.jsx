@@ -17,6 +17,16 @@ export function AuthProvider({ children }) {
 
   // ── Check session on mount ────────────────────────────────────────────────
   useEffect(() => {
+    // Skip API call if no token is stored — avoids waking the backend for public visitors
+    const storedToken = typeof window !== "undefined"
+      ? localStorage.getItem("photographer_admin_token")
+      : null;
+
+    if (!storedToken) {
+      setAuthLoading(false);
+      return;
+    }
+
     let cancelled = false;
     (async () => {
       try {
@@ -33,6 +43,7 @@ export function AuthProvider({ children }) {
     })();
     return () => { cancelled = true; };
   }, []);
+
 
   // ── Login ─────────────────────────────────────────────────────────────────
   const login = useCallback(async (email, password) => {

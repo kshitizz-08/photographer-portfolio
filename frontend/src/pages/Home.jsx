@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, ChevronDown } from "lucide-react";
-import PhotoGrid from "../components/ui/PhotoGrid";
+import PhotoGrid, { PhotoGridSkeleton } from "../components/ui/PhotoGrid";
 import SafeImage from "../components/common/SafeImage";
+import { ErrorState } from "../components/ui/StatusNotice";
 import { getFeaturedPortfolioPhotos, getServices } from "../services/api";
 import { useProfile } from "../context/ProfileContext";
 import { formatINRFrom } from "../utils/currency";
@@ -24,7 +25,13 @@ function Hero({ photographer }) {
           src={p.heroImage || HERO_IMAGE}
           alt="Photography hero — sweeping mountain landscape"
           className="w-full h-full object-cover object-center"
+          loading="eager"
           fetchPriority="high"
+          decoding="async"
+          hero={true}
+          targetWidth={1920}
+          widths={[640, 1080, 1920, 2560]}
+          sizes="100vw"
         />
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
@@ -66,7 +73,7 @@ function Hero({ photographer }) {
 }
 
 // ── Section: Featured Work ────────────────────────────────────────────────────
-function FeaturedWork({ photos }) {
+function FeaturedWork({ photos, loading, error, onRetry }) {
   const displayPhotos = photos || [];
   return (
     <section className="max-w-7xl mx-auto px-6 py-28" aria-labelledby="featured-heading">
@@ -84,7 +91,16 @@ function FeaturedWork({ photos }) {
           View All <ArrowRight size={14} />
         </Link>
       </div>
-      {displayPhotos.length > 0 ? (
+      {loading ? (
+        <PhotoGridSkeleton count={6} />
+      ) : error ? (
+        <ErrorState
+          error={error}
+          onRetry={onRetry}
+          title="Could Not Load Featured Work"
+          compact
+        />
+      ) : displayPhotos.length > 0 ? (
         <PhotoGrid photos={displayPhotos} />
       ) : (
         <div className="py-16 text-center border border-dashed border-[#E0DDD8] my-4 px-6">
@@ -161,6 +177,10 @@ function Categories() {
                 src={item.img}
                 alt={item.label}
                 loading="lazy"
+                decoding="async"
+                targetWidth={600}
+                widths={[300, 600, 900]}
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-black/30 group-hover:bg-black/45 transition-colors duration-300 flex flex-col items-center justify-end pb-8">
@@ -189,6 +209,10 @@ function AboutSnippet({ photographer }) {
             src={portrait}
             alt={`${p.name} — photographer`}
             loading="lazy"
+            decoding="async"
+            targetWidth={800}
+            widths={[400, 800, 1200]}
+            sizes="(max-width: 768px) 100vw, 50vw"
             className="w-full h-full object-cover"
           />
         </div>
@@ -258,6 +282,10 @@ function ServicesPreview({ services }) {
                       src={imgSrc}
                       alt={title}
                       loading="lazy"
+                      decoding="async"
+                      targetWidth={600}
+                      widths={[300, 600, 900]}
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                       className="w-full h-full object-cover opacity-70 group-hover:opacity-90 transition-opacity duration-300"
                     />
                   )}
@@ -335,14 +363,26 @@ export default function Home() {
   const { profile } = useProfile();
   const [featuredPhotos, setFeaturedPhotos] = useState([]);
   const [services, setServices] = useState([]);
+  const [loadingPhotos, setLoadingPhotos] = useState(true);
+  const [photoError, setPhotoError] = useState(null);
+
+  const fetchFeatured = async () => {
+    setLoadingPhotos(true);
+    setPhotoError(null);
+    try {
+      const data = await getFeaturedPortfolioPhotos();
+      setFeaturedPhotos(data || []);
+    } catch (err) {
+      console.warn("[Home] Could not load featured photos:", err.message);
+      setPhotoError(err);
+      setFeaturedPhotos([]);
+    } finally {
+      setLoadingPhotos(false);
+    }
+  };
 
   useEffect(() => {
-    getFeaturedPortfolioPhotos()
-      .then((data) => setFeaturedPhotos(data || []))
-      .catch((err) => {
-        console.warn("[Home] Could not load featured photos:", err.message);
-        setFeaturedPhotos([]);
-      });
+    fetchFeatured();
 
     getServices()
       .then((data) => setServices(data || []))
@@ -352,7 +392,12 @@ export default function Home() {
   return (
     <main>
       <Hero photographer={profile} />
-      <FeaturedWork photos={featuredPhotos} />
+      <FeaturedWork
+        photos={featuredPhotos}
+        loading={loadingPhotos}
+        error={photoError}
+        onRetry={fetchFeatured}
+      />
       <Categories />
       <AboutSnippet photographer={profile} />
       <ServicesPreview services={services} />

@@ -56,8 +56,12 @@ import {
 } from "../controllers/adminContentController.js";
 import { requireAuth } from "../middleware/authMiddleware.js";
 import { loginLimiter } from "../middleware/rateLimiter.js";
+import { noCache } from "../middleware/cacheControl.js";
 
 const router = Router();
+
+// Ensure admin routes and credentials are never stored in browser or proxy caches
+router.use(noCache);
 
 // Public auth routes (rate-limited)
 router.post("/login", loginLimiter, adminLogin);

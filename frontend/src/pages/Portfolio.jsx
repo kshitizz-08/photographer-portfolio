@@ -1,15 +1,19 @@
 import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
-import PhotoGrid from "../components/ui/PhotoGrid";
+import PhotoGrid, { PhotoGridSkeleton } from "../components/ui/PhotoGrid";
 import SafeImage from "../components/common/SafeImage";
-import { LoadingSpinner, ErrorState, EmptyState } from "../components/ui/StatusNotice";
+import { LoadingSpinner, ErrorState, EmptyState, GalleriesStripSkeleton } from "../components/ui/StatusNotice";
 import { getPortfolioPhotos, getGalleries } from "../services/api";
 import { CATEGORIES } from "../data/sampleData";
 
 // ── Gallery cards strip ───────────────────────────────────────────────────────
 function GalleriesStrip({ galleries, loading }) {
-  if (loading || !galleries || galleries.length === 0) return null;
+  if (loading) {
+    return <GalleriesStripSkeleton count={3} />;
+  }
+
+  if (!galleries || galleries.length === 0) return null;
 
   return (
     <section className="max-w-7xl mx-auto px-6 mb-14" aria-labelledby="galleries-strip-heading">
@@ -40,6 +44,9 @@ function GalleriesStrip({ galleries, loading }) {
                 alt={gallery.coverImage?.altText || gallery.coverImage?.alt || gallery.title}
                 loading="lazy"
                 decoding="async"
+                targetWidth={800}
+                widths={[400, 800, 1200]}
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
               />
               {/* Category pill */}
@@ -75,34 +82,52 @@ export default function Portfolio() {
   const [activeCategory, setActiveCategory] = useState(urlCategory);
 
   const [photos, setPhotos] = useState([]);
+  const [loadingPhotos, setLoadingPhotos] = useState(true);
+  const [photoError, setPhotoError] = useState(null);
+
   const [galleries, setGalleries] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [loadingGalleries, setLoadingGalleries] = useState(true);
 
   useEffect(() => {
     setActiveCategory(urlCategory);
   }, [urlCategory]);
 
-  const loadData = async (cat = activeCategory) => {
-    setLoading(true);
-    setError(null);
+  // Load photos independently so gallery response does not block photo display
+  const loadPhotos = async (cat = activeCategory) => {
+    setLoadingPhotos(true);
+    setPhotoError(null);
     try {
-      const [photoData, galleryList] = await Promise.all([
-        getPortfolioPhotos({ category: cat === "All" ? undefined : cat }),
-        getGalleries({ category: cat === "All" ? undefined : cat }),
-      ]);
-      setPhotos(photoData.photos || []);
-      setGalleries(galleryList || []);
+      const data = await getPortfolioPhotos({
+        category: cat === "All" ? undefined : cat,
+      });
+      setPhotos(data.photos || []);
     } catch (err) {
-      console.error("[Portfolio] API fetch error:", err);
-      setError(err);
+      console.error("[Portfolio] Photo API fetch error:", err);
+      setPhotoError(err);
     } finally {
-      setLoading(false);
+      setLoadingPhotos(false);
+    }
+  };
+
+  // Load galleries in parallel without blocking photographs
+  const loadGalleries = async (cat = activeCategory) => {
+    setLoadingGalleries(true);
+    try {
+      const list = await getGalleries({
+        category: cat === "All" ? undefined : cat,
+      });
+      setGalleries(list || []);
+    } catch (err) {
+      console.warn("[Portfolio] Gallery fetch non-fatal error:", err.message);
+      setGalleries([]);
+    } finally {
+      setLoadingGalleries(false);
     }
   };
 
   useEffect(() => {
-    loadData(activeCategory);
+    loadPhotos(activeCategory);
+    loadGalleries(activeCategory);
   }, [activeCategory]);
 
   const handleCategoryChange = (cat) => {
@@ -173,7 +198,7 @@ export default function Portfolio() {
           })}
         </div>
 
-        {!loading && !error && (
+        {!loadingPhotos && !photoError && (
           <p className="mt-4 text-xs text-[#aaa] tracking-wide">
             Showing{" "}
             <span className="text-[#6b6b6b] font-medium">{photos.length}</span>{" "}
@@ -190,16 +215,19 @@ export default function Portfolio() {
 
       {/* ── Gallery collections cards ── */}
       <div id="portfolio-gallery-cards">
-        <GalleriesStrip galleries={galleries} loading={loading} />
+        <GalleriesStrip galleries={galleries} loading={loadingGalleries} />
       </div>
 
       {/* ── Main Content Area ── */}
-      {loading ? (
-        <LoadingSpinner message="Fetching portfolio photographs…" />
-      ) : error ? (
+      {loadingPhotos ? (
+        <div className="max-w-7xl mx-auto px-6 pb-28">
+          <LoadingSpinner message="Fetching portfolio photographs…" />
+          <PhotoGridSkeleton count={9} />
+        </div>
+      ) : photoError ? (
         <ErrorState
-          error={error}
-          onRetry={() => loadData(activeCategory)}
+          error={photoError}
+          onRetry={() => loadPhotos(activeCategory)}
           title="Could Not Load Portfolio"
         />
       ) : (

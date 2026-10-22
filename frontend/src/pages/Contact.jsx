@@ -52,6 +52,7 @@ export default function Contact() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const [slowSubmitting, setSlowSubmitting] = useState(false);
   const [submittedInquiry, setSubmittedInquiry] = useState(null);
   const [serverError, setServerError] = useState("");
   const [copiedRef, setCopiedRef] = useState(false);
@@ -149,7 +150,12 @@ export default function Contact() {
     }
 
     setSubmitting(true);
+    setSlowSubmitting(false);
     setServerError("");
+
+    const slowTimer = setTimeout(() => {
+      setSlowSubmitting(true);
+    }, 2800);
 
     try {
       const response = await submitInquiry({
@@ -184,12 +190,24 @@ export default function Contact() {
       setForm(EMPTY_FORM);
     } catch (err) {
       console.error("[Contact Page] Submission error:", err);
+      const isCold =
+        err?.isColdStart ||
+        err?.status === 502 ||
+        err?.status === 503 ||
+        err?.status === 504 ||
+        err?.code === "TIMEOUT";
+
       setServerError(
-        err.message ||
-          "We could not save your inquiry at this moment. Please check your internet connection or email directly."
+        isCold
+          ? "The server was spinning up from idle and timed out. Your message is safely preserved above — please click 'Send Inquiry' to try again."
+          : err?.friendlyMessage ||
+            err.message ||
+            "We could not save your inquiry at this moment. Please check your internet connection or email directly."
       );
     } finally {
+      clearTimeout(slowTimer);
       setSubmitting(false);
+      setSlowSubmitting(false);
     }
   };
 
@@ -604,7 +622,9 @@ export default function Contact() {
                   {submitting ? (
                     <>
                       <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      <span>Submitting Inquiry…</span>
+                      <span>
+                        {slowSubmitting ? "Waking server & sending…" : "Submitting Inquiry…"}
+                      </span>
                     </>
                   ) : (
                     <>

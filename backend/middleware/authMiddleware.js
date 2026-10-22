@@ -31,7 +31,7 @@ export async function requireAuth(req, res, next) {
 
     // 3. Look up authorized photographer account
     const photographer = await Photographer.findById(decoded.id)
-      .select("-password -privateNotes")
+      .select("name email title role avatar")
       .lean();
 
     if (!photographer) {

@@ -14,6 +14,9 @@ function getApiBaseUrl() {
 
 const API_BASE_URL = getApiBaseUrl();
 
+// 45s allows Render free-tier containers sufficient time to spin up and connect to MongoDB
+const DEFAULT_TIMEOUT_MS = 45000;
+
 class ApiError extends Error {
   constructor(message, status, code = null, details = null) {
     super(message);
@@ -22,11 +25,39 @@ class ApiError extends Error {
     this.code = code;
     this.details = details;
     this.isDbError = status === 503 || code === "DATABASE_UNAVAILABLE";
+    this.isTimeout = code === "TIMEOUT";
+    this.isColdStart =
+      status === 502 ||
+      status === 503 ||
+      status === 504 ||
+      code === "TIMEOUT" ||
+      code === "NETWORK_ERROR";
+
+    // User-facing friendly message
+    if (this.isColdStart) {
+      this.friendlyMessage =
+        "The server is waking up from an idle period (Render free-tier cold start typically takes ~30–50 seconds). Please try again in a few moments.";
+    } else if (this.isDbError) {
+      this.friendlyMessage =
+        "Database is temporarily unavailable. Please verify the connection or try again shortly.";
+    } else {
+      this.friendlyMessage = message;
+    }
   }
 }
 
 async function request(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
+  const timeoutMs = options.timeout ?? DEFAULT_TIMEOUT_MS;
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  // Allow caller to pass an existing abort signal
+  if (options.signal) {
+    options.signal.addEventListener("abort", () => controller.abort());
+  }
+
   try {
     const token = typeof window !== "undefined" ? localStorage.getItem("photographer_admin_token") : null;
     const headers = {
@@ -35,11 +66,16 @@ async function request(endpoint, options = {}) {
       ...options.headers,
     };
 
-    const response = await fetch(url, {
-      credentials: "include",          // ← send HTTP-only cookies cross-origin
+    const fetchOptions = {
+      credentials: "include",          // send HTTP-only cookies cross-origin
       headers,
       ...options,
-    });
+      signal: controller.signal,
+    };
+    delete fetchOptions.timeout;       // avoid leaking custom options to fetch
+
+    const response = await fetch(url, fetchOptions);
+    clearTimeout(timeoutId);
 
     const data = await response.json().catch(() => null);
 
@@ -47,7 +83,9 @@ async function request(endpoint, options = {}) {
       const errorMessage =
         data?.message ||
         (response.status === 503
-          ? "Database is not connected. Please verify MONGODB_URI in backend/.env."
+          ? "Database is temporarily unavailable or connecting."
+          : response.status === 502 || response.status === 504
+          ? "Server gateway timeout. The backend may be spinning up."
           : `Request failed with status ${response.status}`);
 
       throw new ApiError(errorMessage, response.status, data?.code, data);
@@ -55,10 +93,20 @@ async function request(endpoint, options = {}) {
 
     return data;
   } catch (err) {
+    clearTimeout(timeoutId);
     if (err instanceof ApiError) throw err;
-    // Network errors (e.g. backend server stopped or unreachable)
+
+    if (err.name === "AbortError") {
+      throw new ApiError(
+        "Request timed out while waiting for the server. The backend may still be starting up.",
+        504,
+        "TIMEOUT"
+      );
+    }
+
+    // Network errors (backend sleeping, network drop, or server unreachable)
     throw new ApiError(
-      `Unable to reach backend API at ${API_BASE_URL}. Ensure the backend server is running and accessible.`,
+      "Unable to reach the photography API server. It may be waking up from an idle period.",
       0,
       "NETWORK_ERROR"
     );

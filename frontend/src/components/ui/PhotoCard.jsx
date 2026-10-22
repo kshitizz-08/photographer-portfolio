@@ -22,6 +22,9 @@ export default function PhotoCard({ photo, onClick, className = "" }) {
         alt={photo.alt}
         loading="lazy"
         decoding="async"
+        targetWidth={800}
+        widths={[400, 800, 1200]}
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
       />
 

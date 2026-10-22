@@ -14,13 +14,14 @@ import {
 } from "../controllers/photoController.js";
 import { runValidation } from "../middleware/validate.js";
 import { photoQueryValidators } from "../utils/validators.js";
+import { shortCache } from "../middleware/cacheControl.js";
 
 const router = Router();
 
 // NOTE: /featured must be registered BEFORE /:id to avoid "featured" being
 // treated as a MongoDB ObjectId and triggering a CastError.
-router.get("/featured", getFeaturedPhotos);
-router.get("/",         photoQueryValidators, runValidation, getPhotos);
-router.get("/:id",      getPhotoById);
+router.get("/featured", shortCache, getFeaturedPhotos);
+router.get("/",         shortCache, photoQueryValidators, runValidation, getPhotos);
+router.get("/:id",      shortCache, getPhotoById);
 
 export default router;

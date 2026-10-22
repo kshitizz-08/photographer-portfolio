@@ -11,6 +11,27 @@ const ASPECT_MAP = {
 };
 
 /**
+ * Skeleton placeholder grid for zero layout shift during async loads.
+ */
+export function PhotoGridSkeleton({
+  count = 6,
+  columns = "columns-1 sm:columns-2 lg:columns-3",
+}) {
+  const aspects = ["aspect-[3/4]", "aspect-[4/3]", "aspect-[3/4]", "aspect-[2/3]", "aspect-square", "aspect-[3/4]"];
+  return (
+    <div className={`${columns} gap-3`} aria-busy="true" aria-label="Loading photos">
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className="break-inside-avoid mb-3">
+          <div
+            className={`w-full ${aspects[i % aspects.length]} bg-[#EAE7E1] animate-pulse`}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/**
  * PhotoGrid — CSS-columns masonry grid with integrated lightbox.
  *
  * Props:

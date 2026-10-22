@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Check, ArrowRight } from "lucide-react";
 import { getServices } from "../services/api";
-import { LoadingSpinner, ErrorState, EmptyState } from "../components/ui/StatusNotice";
+import { LoadingSpinner, ErrorState, EmptyState, ServicesListSkeleton } from "../components/ui/StatusNotice";
 import { formatINRStarting } from "../utils/currency";
 import SafeImage from "../components/common/SafeImage";
 
@@ -45,7 +45,10 @@ export default function Services() {
 
       {/* Main Content */}
       {loading ? (
-        <LoadingSpinner message="Loading photography services…" />
+        <div className="space-y-6">
+          <LoadingSpinner message="Loading photography services…" />
+          <ServicesListSkeleton />
+        </div>
       ) : error ? (
         <div className="max-w-7xl mx-auto px-6">
           <ErrorState error={error} onRetry={loadServices} title="Unable to Load Services" />
@@ -77,6 +80,10 @@ export default function Services() {
                       src={imgSrc}
                       alt={imgAlt}
                       loading="lazy"
+                      decoding="async"
+                      targetWidth={900}
+                      widths={[450, 900, 1400]}
+                      sizes="(max-width: 768px) 100vw, 50vw"
                       className="w-full h-full object-cover hover:scale-[1.03] transition-transform duration-700"
                     />
                   )}

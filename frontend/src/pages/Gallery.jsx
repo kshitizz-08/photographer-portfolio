@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import PhotoGrid from "../components/ui/PhotoGrid";
 import SafeImage from "../components/common/SafeImage";
-import { LoadingSpinner, ErrorState } from "../components/ui/StatusNotice";
+import { LoadingSpinner, ErrorState, GalleryDetailSkeleton } from "../components/ui/StatusNotice";
 import { getGalleryBySlug, getGalleries } from "../services/api";
 
 // ── Copy-link button ──────────────────────────────────────────────────────────
@@ -100,6 +100,10 @@ function RelatedGalleries({ currentSlug, currentCategory, allGalleries }) {
                 src={g.coverImage?.imageUrl || g.coverImage?.src}
                 alt={g.coverImage?.altText || g.coverImage?.alt || g.title}
                 loading="lazy"
+                decoding="async"
+                targetWidth={800}
+                widths={[400, 800, 1200]}
+                sizes="(max-width: 640px) 100vw, 33vw"
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
               />
             </div>
@@ -190,12 +194,14 @@ export default function Gallery() {
     setLoading(true);
     setError(null);
     try {
-      const [fetchedGallery, fetchedList] = await Promise.all([
-        getGalleryBySlug(slug),
-        getGalleries(),
-      ]);
+      // Essential request: fetch this specific gallery first
+      const fetchedGallery = await getGalleryBySlug(slug);
       setGallery(fetchedGallery);
-      setAllGalleries(fetchedList || []);
+
+      // Non-blocking background fetch for other recommendations
+      getGalleries()
+        .then((list) => setAllGalleries(list || []))
+        .catch(() => setAllGalleries([]));
     } catch (err) {
       console.error("[Gallery] Fetch error:", err);
       setError(err);
@@ -211,8 +217,11 @@ export default function Gallery() {
 
   if (loading) {
     return (
-      <main className="pt-32 pb-28">
-        <LoadingSpinner message="Loading gallery story…" />
+      <main className="pt-20 pb-28">
+        <div className="max-w-7xl mx-auto px-6 pt-6 pb-2">
+          <LoadingSpinner message="Loading gallery story…" />
+        </div>
+        <GalleryDetailSkeleton />
       </main>
     );
   }
@@ -244,7 +253,13 @@ export default function Gallery() {
           <SafeImage
             src={coverSrc}
             alt={coverAlt}
+            loading="eager"
             fetchPriority="high"
+            decoding="async"
+            hero={true}
+            targetWidth={1920}
+            widths={[640, 1080, 1920, 2560]}
+            sizes="100vw"
             className="w-full h-full object-cover object-center"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-black/10" />

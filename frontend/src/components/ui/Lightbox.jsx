@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { X, ChevronLeft, ChevronRight, MapPin, AlertCircle } from "lucide-react";
-import { resolveImageUrl } from "../../utils/imageUrl";
+import { resolveImageUrl, getResponsiveSrcSet } from "../../utils/imageUrl";
 
 /**
  * Lightbox — full-screen photo viewer.
@@ -48,8 +48,23 @@ export default function Lightbox({ photos, initial = 0, onClose }) {
     return () => { document.body.style.overflow = original; };
   }, []);
 
-  // Reset loaded state when photo changes
-  useEffect(() => { setLoaded(false); }, [index]);
+  // Reset loaded state when photo changes & preload adjacent images
+  useEffect(() => {
+    setLoaded(false);
+    // Preload next and previous images in background for instant navigation
+    if (total > 1) {
+      const nextIdx = (index + 1) % total;
+      const prevIdx = (index - 1 + total) % total;
+      if (photos[nextIdx]?.src) {
+        const nextImg = new Image();
+        nextImg.src = resolveImageUrl(photos[nextIdx].src, { width: 1920, quality: 85 });
+      }
+      if (photos[prevIdx]?.src) {
+        const prevImg = new Image();
+        prevImg.src = resolveImageUrl(photos[prevIdx].src, { width: 1920, quality: 85 });
+      }
+    }
+  }, [index, photos, total]);
 
   // ── Backdrop click closes ─────────────────────────────────────────────────
   const handleBackdrop = (e) => {
@@ -118,9 +133,12 @@ export default function Lightbox({ photos, initial = 0, onClose }) {
         ) : (
           <img
             key={photo.id}
-            src={resolveImageUrl(photo.src)}
+            src={resolveImageUrl(photo.src, { width: 1920, quality: 85 })}
+            srcSet={getResponsiveSrcSet(photo.src, [800, 1200, 1920, 2560], { quality: 85 }) || undefined}
+            sizes="90vw"
             alt={photo.alt}
             referrerPolicy="no-referrer"
+            decoding="async"
             onLoad={() => setLoaded(true)}
             onError={() => {
               setLoaded(true);

@@ -44,8 +44,13 @@ export default function About() {
             <SafeImage
               src={portrait}
               alt={`${p.name} — photographer`}
-              className="w-full h-full object-cover"
+              loading="eager"
               fetchPriority="high"
+              decoding="async"
+              targetWidth={900}
+              widths={[450, 900, 1400]}
+              sizes="(max-width: 768px) 100vw, 50vw"
+              className="w-full h-full object-cover"
             />
           </div>
 
