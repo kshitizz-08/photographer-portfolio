@@ -156,7 +156,7 @@ export async function getServices() {
 
 // ── Photographer Profile ─────────────────────────────────────────────────────
 export async function getPhotographerProfile() {
-  const data = await request("/photographer");
+  const data = await request(`/photographer?_t=${Date.now()}`, { cache: "no-store" });
   return data.photographer;
 }
 

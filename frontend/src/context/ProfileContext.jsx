@@ -46,16 +46,13 @@ export function ProfileProvider({ children }) {
     }
   }, []);
 
-  useEffect(() => {
-    fetchProfile();
-  }, [fetchProfile]);
-
   const updateCachedProfile = useCallback((newProfile) => {
     setProfile((prev) => {
       const merged = { ...prev, ...newProfile };
       if (typeof window !== "undefined") {
         try {
           localStorage.setItem(CACHE_KEY, JSON.stringify(merged));
+          window.dispatchEvent(new CustomEvent("profile-updated", { detail: merged }));
         } catch {
           // Ignore storage errors
         }
@@ -63,6 +60,37 @@ export function ProfileProvider({ children }) {
       return merged;
     });
   }, []);
+
+  useEffect(() => {
+    fetchProfile();
+
+    // Listen to cross-tab storage updates
+    const handleStorage = (e) => {
+      if (e.key === CACHE_KEY && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (parsed && parsed.name) {
+            setProfile(parsed);
+          }
+        } catch {}
+      }
+    };
+
+    // Listen to same-tab custom events
+    const handleLocalUpdate = (e) => {
+      if (e.detail && e.detail.name) {
+        setProfile(e.detail);
+      }
+    };
+
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener("profile-updated", handleLocalUpdate);
+
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("profile-updated", handleLocalUpdate);
+    };
+  }, [fetchProfile]);
 
   return (
     <ProfileContext.Provider value={{ profile, updateCachedProfile, refreshProfile: fetchProfile }}>

@@ -59,6 +59,11 @@ const PhotographerSchema = new Schema(
       imageUrl: { type: String, trim: true, default: "", alias: "src" },
       altText: { type: String, trim: true, default: "", alias: "alt" },
     },
+    heroImage: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     heroHeading: {
       type: String,
       trim: true,

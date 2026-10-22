@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   resolveImageUrl,
   getResponsiveSrcSet,
@@ -12,9 +12,9 @@ import {
  * Capabilities:
  * - Automatically optimizes image resolution and format (WebP/AVIF via CDN auto-format).
  * - Generates responsive `srcSet` and `sizes` for supported CDNs (Unsplash, Google Drive, Cloudinary).
- * - Bypasses slow 302 redirects for Google Drive images by targeting direct lh3 endpoints.
+ * - Multi-stage fallback for Google Drive (lh3 direct -> thumbnail -> uc export).
+ * - Instant rendering if image is already cached in browser memory (detects img.complete).
  * - Prevents layout shifts (CLS) by maintaining container dimensions and aspect ratio.
- * - Applies loading="lazy" for below-the-fold images and eager/high priority for hero banners.
  * - Displays graceful loading shimmer skeleton and fallback on broken images.
  */
 export default function SafeImage({
@@ -39,6 +39,8 @@ export default function SafeImage({
   style,
   ...props
 }) {
+  const imgRef = useRef(null);
+
   // Determine appropriate loading and priority defaults based on `hero` flag
   const isEager = hero || loading === "eager" || fetchPriority === "high";
   const effectiveLoading = isEager ? "eager" : (loading || "lazy");
@@ -55,7 +57,7 @@ export default function SafeImage({
   const [currentSrc, setCurrentSrc] = useState(primarySrc);
   const [currentSrcSet, setCurrentSrcSet] = useState(srcSetString);
   const [status, setStatus] = useState("loading"); // "loading" | "loaded" | "error"
-  const [triedFallback, setTriedFallback] = useState(false);
+  const [fallbackAttempt, setFallbackAttempt] = useState(0);
 
   useEffect(() => {
     const nextSrc = resolveImageUrl(src, { width: effectiveTargetWidth });
@@ -69,8 +71,17 @@ export default function SafeImage({
     } else {
       setStatus("loading");
     }
-    setTriedFallback(false);
+    setFallbackAttempt(0);
   }, [src, effectiveTargetWidth]);
+
+  // Check if image is already loaded from browser cache upon mount / update
+  useEffect(() => {
+    if (imgRef.current && imgRef.current.complete) {
+      if (imgRef.current.naturalWidth > 0) {
+        setStatus("loaded");
+      }
+    }
+  }, [currentSrc]);
 
   const handleLoad = (e) => {
     setStatus("loaded");
@@ -78,23 +89,31 @@ export default function SafeImage({
   };
 
   const handleError = (e) => {
-    // If direct Googleusercontent fails, attempt Google Drive thumbnail endpoint as secondary fallback
+    // Multi-stage Google Drive fallback sequence
     try {
       const parsed = new URL(src);
       const driveId = extractGoogleDriveFileId(parsed);
-      if (driveId && !triedFallback) {
-        setTriedFallback(true);
-        setCurrentSrcSet("");
-        setCurrentSrc(`https://drive.google.com/thumbnail?id=${driveId}&sz=w800`);
-        setStatus("loading");
-        return;
+      if (driveId) {
+        if (fallbackAttempt === 0) {
+          setFallbackAttempt(1);
+          setCurrentSrcSet("");
+          setCurrentSrc(`https://drive.google.com/thumbnail?id=${driveId}&sz=w${effectiveTargetWidth}`);
+          setStatus("loading");
+          return;
+        } else if (fallbackAttempt === 1) {
+          setFallbackAttempt(2);
+          setCurrentSrcSet("");
+          setCurrentSrc(`https://drive.google.com/uc?export=view&id=${driveId}`);
+          setStatus("loading");
+          return;
+        }
       }
     } catch {
       // Continue to standard fallback
     }
 
-    if (fallbackSrc && !triedFallback && fallbackSrc !== currentSrc) {
-      setTriedFallback(true);
+    if (fallbackSrc && fallbackAttempt < 3 && fallbackSrc !== currentSrc) {
+      setFallbackAttempt(3);
       setCurrentSrcSet("");
       setCurrentSrc(resolveImageUrl(fallbackSrc, { width: effectiveTargetWidth }));
       setStatus("loading");
@@ -140,6 +159,7 @@ export default function SafeImage({
 
   return (
     <img
+      ref={imgRef}
       src={currentSrc || FALLBACK_IMAGE_PLACEHOLDER}
       srcSet={currentSrcSet || undefined}
       sizes={currentSrcSet ? effectiveSizes : undefined}
@@ -153,11 +173,9 @@ export default function SafeImage({
       onLoad={handleLoad}
       onError={handleError}
       style={containerStyle}
-      className={`${className} ${
-        status === "loading"
-          ? "opacity-0 bg-[#E8E5DF]/50"
-          : "opacity-100"
-      } transition-opacity duration-300`}
+      className={`${className} transition-opacity duration-300 ${
+        status === "loaded" ? "opacity-100" : "opacity-95"
+      }`}
       {...props}
     />
   );

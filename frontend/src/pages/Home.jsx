@@ -42,9 +42,14 @@ function Hero({ photographer }) {
         <p className="text-white/60 text-xs tracking-[0.35em] uppercase mb-5">
           {p.location || "New York, USA & Worldwide"}
         </p>
-        <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-white leading-tight max-w-3xl mb-8">
+        <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-white leading-tight max-w-3xl mb-6">
           {p.heroHeading || p.tagline || "Capturing Moments That Last Forever."}
         </h1>
+        {(p.heroSubheading || p.subheading) && (
+          <p className="text-white/85 text-base sm:text-lg max-w-2xl mb-8 leading-relaxed font-light">
+            {p.heroSubheading || p.subheading}
+          </p>
+        )}
         <div className="flex flex-wrap items-center gap-4">
           <Link
             to="/portfolio"

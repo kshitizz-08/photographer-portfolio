@@ -1,0 +1,283 @@
+import "dotenv/config";
+import mongoose from "mongoose";
+import PortfolioImage from "../models/PortfolioImage.js";
+
+const extraPhotos = [
+  // Wedding
+  {
+    title: "Golden Hour First Look",
+    description: "Intimate first glance between bride and groom as warm sunset light filters through the orchard.",
+    imageUrl: "https://images.unsplash.com/photo-1519741497674-611481863552?w=900&auto=format&fit=crop&q=80",
+    altText: "Bride and groom sharing a first look at golden hour in the garden",
+    category: "Wedding",
+    aspect: "portrait",
+    location: "Hudson Valley, NY",
+    year: 2024,
+    isFeatured: true,
+    isPublished: true,
+    sortOrder: 2,
+  },
+  {
+    title: "The Recessional Walk",
+    description: "Unfiltered joy and confetti as newlyweds walk back down the stone chapel aisle.",
+    imageUrl: "https://images.unsplash.com/photo-1606800052052-a08af7148866?w=900&auto=format&fit=crop&q=80",
+    altText: "Newlyweds walking down the aisle showered in petal confetti",
+    category: "Wedding",
+    aspect: "landscape",
+    location: "Catskills, NY",
+    year: 2024,
+    isFeatured: false,
+    isPublished: true,
+    sortOrder: 3,
+  },
+  {
+    title: "Vows in the Olive Grove",
+    description: "Quiet outdoor ceremony framed by ancient olive trees at dusk.",
+    imageUrl: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=900&auto=format&fit=crop&q=80",
+    altText: "Couple holding hands under an olive tree during vows",
+    category: "Wedding",
+    aspect: "square",
+    location: "Napa Valley, CA",
+    year: 2023,
+    isFeatured: false,
+    isPublished: true,
+    sortOrder: 4,
+  },
+  // Pre-Wedding
+  {
+    title: "Orchard Afternoon Walk",
+    description: "Sophie and Daniel sharing quiet laughter along the Hudson riverside orchard.",
+    imageUrl: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=900&auto=format&fit=crop&q=80",
+    altText: "Couple walking hand in hand through an autumn orchard",
+    category: "Pre-Wedding",
+    aspect: "landscape",
+    location: "Hudson Valley, NY",
+    year: 2024,
+    isFeatured: true,
+    isPublished: true,
+    sortOrder: 5,
+  },
+  {
+    title: "Lake Twilight Embrace",
+    description: "Sun sinking below the horizon over the calm lake pier.",
+    imageUrl: "https://images.unsplash.com/photo-1591604021695-0c69b7c05981?w=900&auto=format&fit=crop&q=80",
+    altText: "Couple laughing on a wooden dock at sunset over the lake",
+    category: "Pre-Wedding",
+    aspect: "landscape",
+    location: "Lake George, NY",
+    year: 2024,
+    isFeatured: false,
+    isPublished: true,
+    sortOrder: 6,
+  },
+  // Portrait
+  {
+    title: "Natural Light Editorial",
+    description: "Minimalist studio portrait focusing on natural texture, expression, and form.",
+    imageUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=900&auto=format&fit=crop&q=80",
+    altText: "Studio portrait in soft window light with subtle shadows",
+    category: "Portrait",
+    aspect: "portrait",
+    location: "Brooklyn, NY",
+    year: 2024,
+    isFeatured: true,
+    isPublished: true,
+    sortOrder: 7,
+  },
+  {
+    title: "The Sculptor in His Studio",
+    description: "Artist paused mid-thought, enveloped in clay dust and morning studio light.",
+    imageUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=900&auto=format&fit=crop&q=80",
+    altText: "Character portrait of a craftsman in his workshop",
+    category: "Portrait",
+    aspect: "square",
+    location: "Hudson, NY",
+    year: 2023,
+    isFeatured: false,
+    isPublished: true,
+    sortOrder: 8,
+  },
+  {
+    title: "High-Contrast Monochrome",
+    description: "Dramatic black-and-white study exploring deep shadows and subtle highlights.",
+    imageUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=900&auto=format&fit=crop&q=80",
+    altText: "Striking black and white close-up portrait of a thoughtful man",
+    category: "Portrait",
+    aspect: "portrait",
+    location: "New York, NY",
+    year: 2024,
+    isFeatured: false,
+    isPublished: true,
+    sortOrder: 9,
+  },
+  // Events
+  {
+    title: "Banquet by Candlelight",
+    description: "An intimate dinner long table glowing with tapered candles and laughter.",
+    imageUrl: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=900&auto=format&fit=crop&q=80",
+    altText: "Long rustic dinner table lit by candlelight at evening banquet",
+    category: "Events",
+    aspect: "landscape",
+    location: "Sonoma, CA",
+    year: 2023,
+    isFeatured: true,
+    isPublished: true,
+    sortOrder: 10,
+  },
+  {
+    title: "Midnight Rooftop Gala",
+    description: "City skyline glittering behind guests caught in mid-dance under strings of lights.",
+    imageUrl: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=900&auto=format&fit=crop&q=80",
+    altText: "Rooftop evening celebration with city lights in background",
+    category: "Events",
+    aspect: "landscape",
+    location: "Chicago, IL",
+    year: 2024,
+    isFeatured: false,
+    isPublished: true,
+    sortOrder: 11,
+  },
+  {
+    title: "Lantern Release at Dusk",
+    description: "Hundreds of warm lanterns floating gently into the deep purple twilight sky.",
+    imageUrl: "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=900&auto=format&fit=crop&q=80",
+    altText: "Paper lanterns floating upward into an indigo dusk sky",
+    category: "Events",
+    aspect: "portrait",
+    location: "Chiang Mai",
+    year: 2023,
+    isFeatured: false,
+    isPublished: true,
+    sortOrder: 12,
+  },
+  // Fashion
+  {
+    title: "Architectural Minimalist",
+    description: "Structural tailoring against brutalist concrete walls under sharp midday light.",
+    imageUrl: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=900&auto=format&fit=crop&q=80",
+    altText: "Model posing in yellow designer knitwear against clean concrete architecture",
+    category: "Fashion",
+    aspect: "portrait",
+    location: "SoHo, NY",
+    year: 2024,
+    isFeatured: true,
+    isPublished: true,
+    sortOrder: 13,
+  },
+  {
+    title: "Silk & Shadows",
+    description: "Flowing fabric catching the breeze in an open-air museum courtyard.",
+    imageUrl: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=900&auto=format&fit=crop&q=80",
+    altText: "Editorial fashion portrait in botanical gardens with delicate lighting",
+    category: "Fashion",
+    aspect: "portrait",
+    location: "Los Angeles, CA",
+    year: 2024,
+    isFeatured: false,
+    isPublished: true,
+    sortOrder: 14,
+  },
+  {
+    title: "High Fashion in Brooklyn",
+    description: "Bold textures and geometric forms photographed in an industrial Brooklyn loft.",
+    imageUrl: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=900&auto=format&fit=crop&q=80",
+    altText: "Fashion model wearing oversized wool coat on city street corner",
+    category: "Fashion",
+    aspect: "square",
+    location: "Brooklyn, NY",
+    year: 2023,
+    isFeatured: false,
+    isPublished: true,
+    sortOrder: 15,
+  },
+  // Travel
+  {
+    title: "Misty Highlands of Skye",
+    description: "Early fog rolling through jagged volcanic peaks after an overnight storm.",
+    imageUrl: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=900&auto=format&fit=crop&q=80",
+    altText: "Mountain lake reflecting forested alpine peaks at sunrise",
+    category: "Travel",
+    aspect: "landscape",
+    location: "Isle of Skye, Scotland",
+    year: 2023,
+    isFeatured: true,
+    isPublished: true,
+    sortOrder: 16,
+  },
+  {
+    title: "Dawn Over the Dolomites",
+    description: "First alpine glow kissing the jagged limestone towers above the pine forest.",
+    imageUrl: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=900&auto=format&fit=crop&q=80",
+    altText: "Dramatic jagged mountain summits bathed in soft golden morning light",
+    category: "Travel",
+    aspect: "landscape",
+    location: "South Tyrol, Italy",
+    year: 2024,
+    isFeatured: false,
+    isPublished: true,
+    sortOrder: 17,
+  },
+  {
+    title: "Coastline of Big Sur",
+    description: "Pacific waves crashing against emerald cliffs in late-afternoon sea mist.",
+    imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=900&auto=format&fit=crop&q=80",
+    altText: "Turquoise ocean waves lapping against secluded golden beach",
+    category: "Travel",
+    aspect: "landscape",
+    location: "Big Sur, CA",
+    year: 2024,
+    isFeatured: false,
+    isPublished: true,
+    sortOrder: 18,
+  },
+  {
+    title: "Solitude in the Sahara",
+    description: "Wind-swept dunes stretching endlessly under a cloudless desert sun.",
+    imageUrl: "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=900&auto=format&fit=crop&q=80",
+    altText: "Rippling sand dunes at golden hour in the desert",
+    category: "Travel",
+    aspect: "square",
+    location: "Merzouga, Morocco",
+    year: 2023,
+    isFeatured: false,
+    isPublished: true,
+    sortOrder: 19,
+  },
+  {
+    title: "Kyoto Bamboo Whispers",
+    description: "Towering green bamboo stalks swaying gently in the morning forest breeze.",
+    imageUrl: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=900&auto=format&fit=crop&q=80",
+    altText: "Sunlight filtering through tall bamboo grove in Kyoto",
+    category: "Travel",
+    aspect: "portrait",
+    location: "Kyoto, Japan",
+    year: 2024,
+    isFeatured: false,
+    isPublished: true,
+    sortOrder: 20,
+  },
+];
+
+async function main() {
+  await mongoose.connect(process.env.MONGODB_URI);
+  console.log("Connected to MongoDB.");
+
+  // Keep existing custom photos at sortOrder 0 and 1
+  await PortfolioImage.updateOne({ title: "Bride Look" }, { $set: { sortOrder: 0 } });
+  await PortfolioImage.updateOne({ title: "Romantic Pre-Wedding Photoshoot" }, { $set: { sortOrder: 1 } });
+
+  let inserted = 0;
+  for (const p of extraPhotos) {
+    const exists = await PortfolioImage.findOne({ title: p.title });
+    if (!exists) {
+      await PortfolioImage.create(p);
+      inserted++;
+    }
+  }
+
+  const count = await PortfolioImage.countDocuments();
+  console.log(`Inserted ${inserted} new photos. Total photos in DB now: ${count}`);
+  await mongoose.disconnect();
+}
+
+main().catch(console.error);

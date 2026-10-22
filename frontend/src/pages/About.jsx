@@ -19,7 +19,7 @@ const PHILOSOPHY = [
   {
     icon: Globe,
     title: "Available Worldwide",
-    body: "Based in Khadambe, Rahuri, Ahilyanagar, I travel wherever stories take me — from destination weddings to intimate celebrations worldwide.",
+    body: (loc) => `Based in ${loc || "Khadambe, Rahuri, Ahilyanagar"}, I travel wherever stories take me — from destination weddings to intimate celebrations worldwide.`,
   },
 ];
 
@@ -110,7 +110,9 @@ export default function About() {
                   <Icon size={18} />
                 </div>
                 <h3 className="font-serif text-2xl text-[#141414]">{item.title}</h3>
-                <p className="text-sm text-[#6b6b6b] leading-relaxed">{item.body}</p>
+                <p className="text-sm text-[#6b6b6b] leading-relaxed">
+                  {typeof item.body === "function" ? item.body(p.location) : item.body}
+                </p>
               </div>
             );
           })}

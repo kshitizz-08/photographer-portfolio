@@ -18,9 +18,9 @@ export default function PhotoCard({ photo, onClick, className = "" }) {
     >
       {/* Photo */}
       <SafeImage
-        src={photo.src}
-        alt={photo.alt}
-        loading="lazy"
+        src={photo.src || photo.imageUrl}
+        alt={photo.alt || photo.altText || photo.title}
+        loading="eager"
         decoding="async"
         targetWidth={800}
         widths={[400, 800, 1200]}

@@ -866,9 +866,11 @@ export async function updateAdminProfile(req, res, next) {
     const {
       name,
       title,
+      email,
       bio,
       shortBio,
       profileImage,
+      heroImage,
       heroHeading,
       heroSubheading,
       location,
@@ -881,8 +883,10 @@ export async function updateAdminProfile(req, res, next) {
     const updateData = {};
     if (name !== undefined) updateData.name = name.trim();
     if (title !== undefined) updateData.title = title.trim();
+    if (email !== undefined && email.trim()) updateData.email = email.trim().toLowerCase();
     if (bio !== undefined) updateData.bio = bio.trim();
     if (shortBio !== undefined) updateData.shortBio = shortBio.trim();
+    if (heroImage !== undefined) updateData.heroImage = typeof heroImage === "string" ? heroImage.trim() : (heroImage?.imageUrl || heroImage?.src || "").trim();
     if (heroHeading !== undefined) updateData.heroHeading = heroHeading.trim();
     if (heroSubheading !== undefined) updateData.heroSubheading = heroSubheading.trim();
     if (location !== undefined) updateData.location = location.trim();

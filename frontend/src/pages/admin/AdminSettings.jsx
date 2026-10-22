@@ -40,6 +40,7 @@ export default function AdminSettings() {
     email: "",
     phone: "",
     location: "",
+    heroImageUrl: "",
     heroHeading: "",
     heroSubheading: "",
     bio: "",
@@ -66,6 +67,7 @@ export default function AdminSettings() {
           email: p.email || "",
           phone: p.phone || "",
           location: p.location || "",
+          heroImageUrl: p.heroImage || "",
           heroHeading: p.heroHeading || "",
           heroSubheading: p.heroSubheading || "",
           bio: p.bio || "",
@@ -112,14 +114,24 @@ export default function AdminSettings() {
       }
     }
 
+    if (formData.heroImageUrl.trim()) {
+      const heroVal = validateImageUrl(formData.heroImageUrl);
+      if (!heroVal.valid) {
+        setError(heroVal.error || "Please enter a valid hero background image URL.");
+        return;
+      }
+    }
+
     setSaving(true);
     setError(null);
 
     const payload = {
       name: formData.name.trim(),
       title: formData.title.trim(),
+      email: formData.email.trim(),
       phone: formData.phone.trim(),
       location: formData.location.trim(),
+      heroImage: formData.heroImageUrl.trim(),
       heroHeading: formData.heroHeading.trim(),
       heroSubheading: formData.heroSubheading.trim(),
       bio: formData.bio.trim(),
@@ -269,12 +281,25 @@ export default function AdminSettings() {
                 </label>
                 <input
                   type="text"
-                  placeholder="+1 (415) 555-0199"
+                  placeholder="+91 84080 31390"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   className="w-full px-3 py-2 bg-[#1a1a1a] border border-[#333333] focus:border-[#C4A882] rounded-lg text-xs text-[#FAF9F7] outline-none"
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-[#C4A882] mb-1.5">
+                Studio Contact Email
+              </label>
+              <input
+                type="email"
+                placeholder="jalindarpalephotography@gmail.com"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className="w-full px-3 py-2 bg-[#1a1a1a] border border-[#333333] focus:border-[#C4A882] rounded-lg text-xs text-[#FAF9F7] outline-none"
+              />
             </div>
           </div>
 
@@ -284,6 +309,19 @@ export default function AdminSettings() {
               <Globe size={18} className="text-[#C4A882]" />
               Website Hero & Editorial Copy
             </h2>
+
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-[#C4A882] mb-1.5">
+                Hero Background Image URL (Home Page Banner)
+              </label>
+              <input
+                type="text"
+                placeholder="https://images.unsplash.com/... or Google Drive link"
+                value={formData.heroImageUrl}
+                onChange={(e) => setFormData({ ...formData, heroImageUrl: e.target.value })}
+                className="w-full px-3 py-2 bg-[#1a1a1a] border border-[#333333] focus:border-[#C4A882] rounded-lg text-xs text-[#FAF9F7] outline-none"
+              />
+            </div>
 
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-[#C4A882] mb-1.5">

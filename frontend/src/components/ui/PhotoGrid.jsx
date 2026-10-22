@@ -48,7 +48,7 @@ export default function PhotoGrid({
 
   const openLightbox = (photo) => {
     if (!showLightbox) return;
-    const idx = photos.findIndex((p) => p.id === photo.id);
+    const idx = photos.findIndex((p) => (p.id || p._id) === (photo.id || photo._id));
     if (idx !== -1) setLightboxIndex(idx);
   };
 
@@ -56,10 +56,11 @@ export default function PhotoGrid({
     <>
       {/* CSS columns masonry — items flow top-to-bottom within each column */}
       <div className={`${columns} gap-3`}>
-        {photos.map((photo) => {
+        {photos.map((photo, i) => {
           const aspectClass = ASPECT_MAP[photo.aspect] ?? "aspect-[3/4]";
+          const key = photo.id || photo._id || `photo-${i}`;
           return (
-            <div key={photo.id} className="break-inside-avoid mb-3">
+            <div key={key} className="break-inside-avoid mb-3">
               <PhotoCard
                 photo={photo}
                 onClick={openLightbox}

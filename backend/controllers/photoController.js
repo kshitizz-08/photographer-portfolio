@@ -23,9 +23,10 @@ async function paginatedFind(filter, { page = 1, limit = 50, sort = { sortOrder:
       .lean(),
   ]);
 
-  // Normalize fields so clients receive both src and imageUrl, alt and altText
+  // Normalize fields so clients receive both src and imageUrl, alt and altText, id and _id
   const normalized = photos.map((p) => ({
     ...p,
+    id: p._id ? p._id.toString() : undefined,
     src: p.imageUrl || p.src,
     alt: p.altText || p.alt,
     featured: p.isFeatured ?? p.featured,
