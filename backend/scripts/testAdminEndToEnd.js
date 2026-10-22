@@ -15,8 +15,8 @@
 import "dotenv/config";
 
 const BASE_URL = process.env.API_BASE_URL || "http://localhost:5000/api";
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@emoharmony.com";
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "AdminEmo2026!";
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "jalindarpalephotography@gmail.com";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "Jalu@9900";
 
 let cookie = "";
 let passed = 0;

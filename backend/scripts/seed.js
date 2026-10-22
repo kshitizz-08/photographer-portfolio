@@ -50,11 +50,12 @@ async function seed() {
 
     // ── 1. Seed Photographer ───────────────────────────────────────────────────
     console.log("[Seed] Seeding Photographer profile...");
-    const adminPassword = process.env.ADMIN_PASSWORD || "AdminEmo2026!";
+    const adminPassword = process.env.ADMIN_PASSWORD || "Jalu@9900";
+    const adminEmail = process.env.ADMIN_EMAIL || "jalindarpalephotography@gmail.com";
     const photographer = await Photographer.create({
-      name: "Elena Vasquez",
+      name: process.env.ADMIN_NAME || "Jalindar Pale",
       title: "Fine Art & Editorial Photographer",
-      email: "hello@elenavasquez.com",
+      email: adminEmail,
       // Password will be hashed with bcrypt by the Photographer pre('save') hook
       password: adminPassword,
       privateNotes: "Admin Note: Travel radius is 150 miles without per-diem fees. Contact manager for Milan Fashion Week schedule.",
