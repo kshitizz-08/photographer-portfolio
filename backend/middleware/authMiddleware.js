@@ -11,12 +11,12 @@ import Photographer from "../models/Photographer.js";
 
 export async function requireAuth(req, res, next) {
   try {
-    // 1. Check HTTP-only cookie first, then fallback to Authorization header
+    // 1. Check tab-scoped Authorization header first, then fallback to HTTP-only cookie
     const token =
-      req.cookies?.[env.ADMIN_COOKIE_NAME] ||
       (req.headers.authorization?.startsWith("Bearer ")
         ? req.headers.authorization.split(" ")[1]
-        : null);
+        : null) ||
+      req.cookies?.[env.ADMIN_COOKIE_NAME];
 
     if (!token) {
       return res.status(401).json({

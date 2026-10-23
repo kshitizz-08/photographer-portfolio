@@ -18,8 +18,7 @@ function getCookieOptions() {
     httpOnly: true,                             // prevent client-side JS / XSS access
     secure:   isProduction,                     // HTTPS only in production (required for sameSite: "none")
     sameSite: isProduction ? "none" : "lax",    // "none" allows cross-domain cookies on Render; "lax" for localhost dev
-    maxAge:   7 * 24 * 60 * 60 * 1000,          // 7 days
-    path:     "/",
+    path:     "/",                              // Session cookie: destroyed when browser session ends
   };
 }
 

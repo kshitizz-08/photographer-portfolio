@@ -17,9 +17,14 @@ export function AuthProvider({ children }) {
 
   // ── Check session on mount ────────────────────────────────────────────────
   useEffect(() => {
-    // Skip API call if no token is stored — avoids waking the backend for public visitors
+    // Clear any legacy persistent token so sessions remain strictly scoped to the active tab
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("photographer_admin_token");
+    }
+
+    // Check tab-scoped session token; skip API call if not present (fresh tab or after tab close)
     const storedToken = typeof window !== "undefined"
-      ? localStorage.getItem("photographer_admin_token")
+      ? sessionStorage.getItem("photographer_admin_token")
       : null;
 
     if (!storedToken) {
@@ -34,6 +39,7 @@ export function AuthProvider({ children }) {
         if (!cancelled) setPhotographer(data.photographer ?? null);
       } catch {
         if (typeof window !== "undefined") {
+          sessionStorage.removeItem("photographer_admin_token");
           localStorage.removeItem("photographer_admin_token");
         }
         if (!cancelled) setPhotographer(null);

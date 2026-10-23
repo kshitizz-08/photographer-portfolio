@@ -59,7 +59,7 @@ async function request(endpoint, options = {}) {
   }
 
   try {
-    const token = typeof window !== "undefined" ? localStorage.getItem("photographer_admin_token") : null;
+    const token = typeof window !== "undefined" ? sessionStorage.getItem("photographer_admin_token") : null;
     const headers = {
       "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -184,7 +184,8 @@ export async function adminLogin(email, password) {
     body: JSON.stringify({ email, password }),
   });
   if (data?.token && typeof window !== "undefined") {
-    localStorage.setItem("photographer_admin_token", data.token);
+    sessionStorage.setItem("photographer_admin_token", data.token);
+    localStorage.removeItem("photographer_admin_token");
   }
   return data;
 }
@@ -195,6 +196,7 @@ export async function adminLogin(email, password) {
  */
 export async function adminLogout() {
   if (typeof window !== "undefined") {
+    sessionStorage.removeItem("photographer_admin_token");
     localStorage.removeItem("photographer_admin_token");
   }
   return request("/admin/logout", { method: "POST" });
