@@ -36,6 +36,7 @@ import {
   updateAdminInquiry,
   deleteAdminInquiry
 } from "../../services/api";
+import { useAuth } from "../../context/AuthContext";
 
 const STATUS_OPTIONS = [
   { value: "new",      label: "New",      badge: "bg-amber-500/15 text-amber-300 border-amber-500/30" },
@@ -46,6 +47,7 @@ const STATUS_OPTIONS = [
 ];
 
 export default function AdminInquiries() {
+  const { photographer } = useAuth();
   const [inquiries, setInquiries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -157,7 +159,7 @@ export default function AdminInquiries() {
     const cleanNumber = phone.replace(/[^0-9]/g, "");
     if (!cleanNumber) return null;
     const message = encodeURIComponent(
-      `Hello ${name}, thank you for reaching out to Elena Vasquez Photography regarding your inquiry [${refId}].`
+      `Hello ${name}, thank you for reaching out to ${photographer?.name ?? "our photography studio"} regarding your inquiry [${refId}].`
     );
     return `https://wa.me/${cleanNumber}?text=${message}`;
   };

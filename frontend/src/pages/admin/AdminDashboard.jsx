@@ -272,7 +272,7 @@ export default function AdminDashboard() {
 
                       <div className="flex items-center gap-2 shrink-0">
                         <a
-                          href={`mailto:${inq.email}?subject=Elena Vasquez Photography - Regarding your ${inq.shootType || "shoot"} inquiry`}
+                          href={`mailto:${inq.email}?subject=${photographer?.name ?? "Photography"} - Regarding your ${inq.shootType || "shoot"} inquiry`}
                           className="p-1.5 rounded bg-[#222222] hover:bg-[#333333] text-[#999999] hover:text-[#FAF9F7] transition-colors"
                           title="Send Email"
                         >
